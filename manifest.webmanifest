@@ -1,0 +1,22 @@
+{
+  "name": "WOSVIP Calculadora PRO",
+  "short_name": "Calculadora PRO",
+  "description": "Calculadora científica WOSVIP PRO instalável e offline",
+  "lang": "pt-BR",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "display_override": ["window-controls-overlay", "standalone"],
+  "orientation": "any",
+  "background_color": "#07101d",
+  "theme_color": "#08111f",
+  "categories": ["education", "utilities"],
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
