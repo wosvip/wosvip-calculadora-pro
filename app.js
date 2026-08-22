@@ -357,11 +357,24 @@ function calculationStepsContext(){
   return {formula,result:preview||'',symbolic:/[xXyY]/.test(formula)}
 }
 function buildCalculationSteps(formula,result,symbolic){return symbolic?symbolicCalculationSteps(formula,result):numericCalculationSteps(formula,result)}
+function chatStepTitle(title){
+  if(title==='Expressão original')return 'Considere a expressão:';
+  if(title==='Resultado simplificado'||title==='Resultado final')return 'Portanto, o resultado é:';
+  if(title.startsWith('Fatore'))return 'Fatorando o numerador e o denominador:';
+  if(title.startsWith('Cancele o fator comum'))return title.replace('Cancele','Cancelando')+':';
+  if(title.startsWith('Divida cada termo'))return 'Separando cada termo do numerador pelo denominador:';
+  if(title.startsWith('Reduza os coeficientes'))return 'Reduzindo os coeficientes e os expoentes:';
+  if(title==='Expressão algébrica')return 'Observação:';
+  if(title.startsWith('Resolva'))return title.replace('Resolva','Resolvendo')+':';
+  if(title.startsWith('Faça'))return title.replace('Faça','Efetuando')+':';
+  if(title.startsWith('Calcule'))return title.replace('Calcule','Calculando')+':';
+  return title.endsWith(':')?title:title+':'
+}
 function showCalculationSteps(){
   const context=calculationStepsContext();if(!context)return;document.querySelector('.calculation-steps-overlay')?.remove();
   const steps=buildCalculationSteps(context.formula,context.result,context.symbolic),overlay=document.createElement('div');overlay.className='calculation-steps-overlay';
-  overlay.innerHTML='<section class="calculation-steps-card" role="dialog" aria-modal="true" aria-label="Resolução passo a passo"><header><div><small>WOSVIP Calculadora PRO</small><h2>Resolução passo a passo</h2></div><button type="button" aria-label="Fechar">×</button></header><div class="calculation-steps-list">'+steps.map((step,index)=>'<article><span>'+(index+1)+'</span><div><strong>'+step.title+'</strong>'+step.html+'</div></article>').join('')+'</div><footer><button type="button">Entendi</button></footer></section>';
-  document.body.appendChild(overlay);const close=()=>overlay.remove();overlay.querySelector('header button').onclick=close;overlay.querySelector('footer button').onclick=close;overlay.onclick=event=>{if(event.target===overlay)close()}
+  overlay.innerHTML='<section class="calculation-steps-card chat-math-solution" role="dialog" aria-modal="true" aria-label="Resolução matemática"><header><h2>Resolução matemática</h2><button type="button" aria-label="Fechar">×</button></header><div class="calculation-steps-list">'+steps.map(step=>'<article><div><strong>'+chatStepTitle(step.title)+'</strong>'+step.html+'</div></article>').join('')+'</div></section>';
+  document.body.appendChild(overlay);const close=()=>overlay.remove();overlay.querySelector('header button').onclick=close;overlay.onclick=event=>{if(event.target===overlay)close()}
 }
 function updateStepsButton(){
   const button=$('#resultStepsBtn');if(!button)return;const context=calculationStepsContext();button.hidden=!context||(!context.result&&!context.symbolic)

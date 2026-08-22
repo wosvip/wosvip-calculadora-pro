@@ -115,3 +115,17 @@ html.standalone-app body>header{display:none!important}
 .symbolic-reductions{display:grid;gap:12px}.symbolic-reduction-row{display:grid;grid-template-columns:18px 1fr 18px auto;gap:7px;align-items:center}.symbolic-reduction-row>b{font-size:22px}.symbolic-reduction-row>span{display:flex;align-items:center;gap:6px;flex-wrap:wrap}.symbolic-reduction-row i{font-style:normal;font-weight:800}.symbolic-reduction-row .math-fraction{min-width:48px}
 
 .calculation-domain{margin:10px 0 0!important;padding:10px 12px;border:1px solid #3d444c;border-left:4px solid #20c8b0;background:#0d1014;border-radius:6px;color:#f3f4f6!important;font-size:14px}
+
+/* Apresentação contínua, inspirada em uma resposta matemática do ChatGPT */
+.calculation-steps-overlay{background:#000;backdrop-filter:none;padding:0;align-items:stretch}
+.calculation-steps-card.chat-math-solution{width:min(720px,100%);max-height:100vh;margin:auto;background:#000;border:0;border-radius:0;box-shadow:none;color:#f7f7f8}
+.chat-math-solution header{padding:20px 22px 14px;background:#000;border-bottom:1px solid #2b2f35}.chat-math-solution header h2{margin:0;font-size:22px;font-weight:700}.chat-math-solution header button{color:#f7f7f8}
+.chat-math-solution .calculation-steps-list{padding:0 22px 24px;background:#000}
+.chat-math-solution .calculation-steps-list article{display:block;padding:20px 0;border-bottom:1px solid #292d32}
+.chat-math-solution .calculation-steps-list article>span{display:none}
+.chat-math-solution .calculation-steps-list article>div>strong{display:block;margin:0 0 10px;color:#f2f3f5;font-size:16px;font-weight:600;line-height:1.45}
+.chat-math-solution .calculation-step-math{background:transparent;color:#fff;border:0;border-radius:0;box-shadow:none;padding:5px 4px;font-size:25px;line-height:1.35}
+.chat-math-solution .calculation-step-math .math-fraction>span:first-child{border-bottom-color:#fff}
+.chat-math-solution .calculation-domain{margin-top:13px!important;padding:10px 0;border:0;border-top:1px solid #2f343a;border-radius:0;background:transparent;color:#d8dadd!important}
+.chat-math-solution .symbolic-reductions{gap:14px}.chat-math-solution .symbolic-reduction-row{padding:3px 0}
+@media(max-width:560px){.chat-math-solution header{padding:17px 18px 12px}.chat-math-solution .calculation-steps-list{padding:0 18px 22px}.chat-math-solution .calculation-steps-list article{padding:18px 0}.chat-math-solution .calculation-step-math{font-size:23px}}
