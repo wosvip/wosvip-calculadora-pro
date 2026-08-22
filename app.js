@@ -310,4 +310,8 @@ window.addEventListener('beforeinstallprompt',event=>{event.preventDefault();def
 window.addEventListener('appinstalled',()=>{deferredInstallPrompt=null;installBtn.hidden=true});
 installBtn.onclick=async()=>{if(isStandalone())return;if(deferredInstallPrompt){deferredInstallPrompt.prompt();await deferredInstallPrompt.userChoice;deferredInstallPrompt=null;updateInstallButton();return}const ios=/iphone|ipad|ipod/i.test(navigator.userAgent);alert(ios?'Para instalar: toque em Compartilhar e depois em Adicionar à Tela de Início.':'Abra o menu do navegador e escolha Instalar WOSVIP Calculadora PRO ou Instalar aplicativo.')};
 updateInstallButton();
-if('serviceWorker'in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));
+if('serviceWorker'in navigator){
+  let serviceWorkerRefreshing=false;
+  navigator.serviceWorker.addEventListener('controllerchange',()=>{if(serviceWorkerRefreshing)return;serviceWorkerRefreshing=true;if(!sessionStorage.getItem('wosvip-sw-reloaded')){sessionStorage.setItem('wosvip-sw-reloaded','1');location.reload()}});
+  window.addEventListener('load',async()=>{try{const registration=await navigator.serviceWorker.register('./sw.js?v=30',{updateViaCache:'none'});await registration.update();if(registration.waiting)registration.waiting.postMessage({type:'SKIP_WAITING'});setTimeout(()=>sessionStorage.removeItem('wosvip-sw-reloaded'),8000)}catch{}});
+}
