@@ -90,24 +90,39 @@ function openMathDialog(type){
     setComputedValue(result,isIntegral?'Integral':isDerivative?'Derivada':'Logaritmo',detail);overlay.remove();updateDisplay()
   }catch{$('#expression').textContent='Não foi possível calcular';}};
 }
-function normalizeCameraMath(raw){
-  let lines=String(raw||'').split(/\n+/).map(line=>line.trim()).filter(Boolean);
-  lines=lines.map(line=>line.replace(/[|_=]+$/g,'').trim()).filter(Boolean);
-  let text=lines.length===2?'('+lines[0]+')/('+lines[1]+')':lines.join('');
-  return text.replace(/[−–—]/g,'-').replace(/[×·]/g,'*').replace(/÷/g,'/').replace(/[{}[\]]/g,m=>m==='{'||m==='['?'(':')').replace(/√\s*([0-9A-Za-z.]+)/g,'√($1)').replace(/([0-9)])(?=√|\()/g,'$1*').replace(/([0-9)])([A-Za-z])/g,'$1*$2').replace(/²/g,'^2').replace(/³/g,'^3').replace(/\s+/g,'').replace(/[^0-9A-Za-zπ√∛+\-*/^().,%]/g,'');
+function cameraOcrLines(raw){return String(raw||'').split(/\n+/).map(line=>line.trim()).filter(Boolean)}
+function cleanCameraOcrLine(raw){
+  return String(raw||'').replace(/[−–—_=|]/g,char=>/[−–—]/.test(char)?'-':'').replace(/[×·]/g,'*').replace(/÷/g,'/').replace(/²/g,'^2').replace(/³/g,'^3').replace(/([xX])\s*(?:[?°º*]|2)(?=\s*[-+)]|$)/g,'$1^2').replace(/\s+/g,'').replace(/[^0-9A-Za-zπ√∛+\-*/^().,%]/g,'')
 }
-function loadCameraOcr(){
-  if(window.Tesseract)return Promise.resolve(window.Tesseract);
-  if(window.__wosvipOcrPromise)return window.__wosvipOcrPromise;
-  window.__wosvipOcrPromise=new Promise((resolve,reject)=>{
-    const script=document.createElement('script');script.src='https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js';script.crossOrigin='anonymous';script.onload=()=>window.Tesseract?resolve(window.Tesseract):reject(new Error('OCR indisponível'));script.onerror=()=>reject(new Error('Não foi possível carregar o reconhecimento'));document.head.appendChild(script)
-  });
-  return window.__wosvipOcrPromise
+function scoreCameraOcrLine(line){
+  const foreign=(line.match(/[A-WYZ]/gi)||[]).length,operators=(line.match(/[+\-/^]/g)||[]).length,variables=(line.match(/[xX]/g)||[]).length,powers=(line.match(/\^2|\^3/g)||[]).length;
+  return line.length+operators*4+variables*3+powers*5-foreign*9
+}
+function combineCameraOcr(primary,alternate){
+  const a=cameraOcrLines(primary),b=cameraOcrLines(alternate),count=Math.max(a.length,b.length),lines=[];
+  for(let i=0;i<count;i++){let first=cleanCameraOcrLine(a[i]||''),second=cleanCameraOcrLine(b[i]||'');if(/^\d+$/.test(first)&&/^\d+[xX]$/.test(second)){const digits=second.slice(0,-1);if(first.endsWith(digits))second=first+'x'}else if(/^\d+[xX]$/.test(first)&&/^\d+$/.test(second)){const digits=first.slice(0,-1);if(second.endsWith(digits))first=second+'x'}const chosen=scoreCameraOcrLine(second)>scoreCameraOcrLine(first)?second:first;if(chosen)lines.push(chosen)}
+  let text=lines.length===2?'('+lines[0]+')/('+lines[1]+')':lines.join('');
+  return text.replace(/√\s*([0-9A-Za-z.]+)/g,'√($1)').replace(/([0-9)])(?=√|\()/g,'$1*').replace(/([0-9)])([xX])/g,'$1*$2')
+}
+async function prepareCameraOcrImage(image){
+  const bitmap=await createImageBitmap(image),scale=Math.min(4,Math.max(2,1400/Math.max(1,bitmap.width))),canvas=document.createElement('canvas');canvas.width=Math.round(bitmap.width*scale);canvas.height=Math.round(bitmap.height*scale);const context=canvas.getContext('2d');context.fillStyle='#fff';context.fillRect(0,0,canvas.width,canvas.height);context.filter='grayscale(1) contrast(165%)';context.imageSmoothingEnabled=true;context.imageSmoothingQuality='high';context.drawImage(bitmap,0,0,canvas.width,canvas.height);bitmap.close?.();return canvas
+}
+async function loadCameraOcr(){
+  if(window.__wosvipOcrWorkerPromise)return window.__wosvipOcrWorkerPromise;
+  window.__wosvipOcrWorkerPromise=(async()=>{
+    if(!window.Tesseract){await new Promise((resolve,reject)=>{const script=document.createElement('script');script.src='https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js';script.crossOrigin='anonymous';script.onload=resolve;script.onerror=()=>reject(new Error('Não foi possível carregar o reconhecimento'));document.head.appendChild(script)})}
+    if(!window.Tesseract)throw new Error('OCR indisponível');
+    return window.Tesseract.createWorker('eng',1,{logger:message=>{if(window.__wosvipOcrProgress&&message.status==='recognizing text'){const value=window.__wosvipOcrPhase+(message.progress||0)*window.__wosvipOcrRange;window.__wosvipOcrProgress(Math.min(99,Math.round(value)))}}})
+  })();
+  return window.__wosvipOcrWorkerPromise
 }
 async function recognizeCameraMath(image,onProgress){
-  const engine=await loadCameraOcr();
-  const result=await engine.recognize(image,'eng',{logger:message=>{if(onProgress&&message.status==='recognizing text')onProgress(Math.round((message.progress||0)*100))}});
-  return normalizeCameraMath(result.data&&result.data.text)
+  const worker=await loadCameraOcr(),prepared=await prepareCameraOcrImage(image);window.__wosvipOcrProgress=onProgress;
+  try{
+    window.__wosvipOcrPhase=0;window.__wosvipOcrRange=46;await worker.setParameters({tessedit_pageseg_mode:'6',tessedit_char_whitelist:'',preserve_interword_spaces:'1'});const primary=await worker.recognize(prepared);
+    window.__wosvipOcrPhase=50;window.__wosvipOcrRange=46;await worker.setParameters({tessedit_pageseg_mode:'11',tessedit_char_whitelist:'0123456789xX+-*/()^√.²³',preserve_interword_spaces:'1'});const alternate=await worker.recognize(prepared);
+    onProgress?.(100);return combineCameraOcr(primary.data&&primary.data.text,alternate.data&&alternate.data.text)
+  }finally{window.__wosvipOcrProgress=null}
 }
 function openCalculatorCamera(){
   document.querySelector('.math-camera-screen')?.remove();
