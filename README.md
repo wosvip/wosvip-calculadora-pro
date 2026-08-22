@@ -1,4 +1,4 @@
-# WOSVIP Calculadora PRO
+# WOSVIP Calculadora PRO®
 
 Calculadora científica instalável para computador e smartphone, desenvolvida para cálculos numéricos, expressões algébricas, engenharia, estudos e conversões de unidades.
 
