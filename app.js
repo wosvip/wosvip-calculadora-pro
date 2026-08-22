@@ -87,26 +87,29 @@ function openCalculatorCamera(){
   input.onchange=()=>{const file=input.files&&input.files[0];if(!file)return;const url=URL.createObjectURL(file),overlay=document.createElement('div');overlay.className='converter-overlay camera-overlay';overlay.innerHTML='<div class="converter-dialog"><h3>Imagem da expressão</h3><img class="camera-preview" alt="Expressão fotografada"><p class="camera-help">Imagem capturada. Use as teclas da calculadora para inserir a expressão conferindo a fotografia.</p><div class="converter-actions"><button class="converter-confirm" type="button">Fechar</button></div></div>';overlay.querySelector('img').src=url;overlay.querySelector('button').onclick=()=>{URL.revokeObjectURL(url);overlay.remove()};document.body.appendChild(overlay)};input.click()
 }
 function openQuickConverter(){
-  let current;
-  try{current=safeEval(closeParentheses(expr))}catch{$('#expression').textContent='Digite primeiro um valor válido';return}
-  document.querySelector('.converter-overlay')?.remove();
+  let current=0;try{current=expr?safeEval(closeParentheses(expr)):0}catch{}
+  document.querySelector('.converter-screen')?.remove();
   const groups={
-    Comprimento:{m:1,km:1000,cm:.01,mm:.001,'pol':.0254,'pé':.3048},
-    Massa:{kg:1,g:.001,lb:.45359237},
-    Temperatura:{'°C':'C','°F':'F',K:'K'}
+    'Distância':{m:1,km:1000,cm:.01,mm:.001,'pol':.0254,'pé':.3048,'mi':1609.344},
+    'Área':{'m²':1,'km²':1e6,'cm²':1e-4,'mm²':1e-6,'ha':1e4},
+    'Volume':{'m³':1,L:.001,mL:1e-6,'cm³':1e-6,'gal':.003785411784},
+    'Massa':{kg:1,g:.001,mg:1e-6,t:1000,lb:.45359237,'oz':.028349523125},
+    'Hora':{s:1,min:60,h:3600,dia:86400},
+    'Velocidade':{'m/s':1,'km/h':1/3.6,'mph':.44704,'nó':.514444},
+    'Frequência':{Hz:1,kHz:1000,MHz:1e6,GHz:1e9,rpm:1/60},
+    'Força':{N:1,kN:1000,'kgf':9.80665,'lbf':4.4482216153},
+    'Torque':{'N·m':1,'kN·m':1000,'kgf·m':9.80665,'lbf·ft':1.3558179483},
+    'Pressão':{Pa:1,kPa:1000,MPa:1e6,bar:1e5,psi:6894.7572932,atm:101325},
+    'Energia':{J:1,kJ:1000,Wh:3600,kWh:3.6e6,cal:4.184},
+    'Potência':{W:1,kW:1000,MW:1e6,'cv':735.49875,'hp':745.699872},
+    'Temperatura':{'°C':'C','°F':'F',K:'K'},
+    'Ângulo':{rad:1,'grau':Math.PI/180,'grad':Math.PI/200}
   };
-  const overlay=document.createElement('div');overlay.className='converter-overlay';
-  overlay.innerHTML='<div class="converter-dialog" role="dialog" aria-modal="true"><h3>Conversão de unidades</h3><div class="converter-current">Valor: <strong>'+current+'</strong></div><label>Categoria<select id="quickCategory"></select></label><div class="converter-row"><label>De<select id="quickFrom"></select></label><span>→</span><label>Para<select id="quickTo"></select></label></div><div class="converter-actions"><button type="button" class="converter-cancel">Cancelar</button><button type="button" class="converter-confirm">Converter</button></div></div>';
-  document.body.appendChild(overlay);
-  const category=overlay.querySelector('#quickCategory'),from=overlay.querySelector('#quickFrom'),to=overlay.querySelector('#quickTo');
-  category.innerHTML=Object.keys(groups).map(x=>'<option>'+x+'</option>').join('');
-  function fill(){const names=Object.keys(groups[category.value]);from.innerHTML=names.map(x=>'<option>'+x+'</option>').join('');to.innerHTML=names.map(x=>'<option>'+x+'</option>').join('');to.selectedIndex=Math.min(1,names.length-1)}
-  fill();category.onchange=fill;
-  overlay.querySelector('.converter-cancel').onclick=()=>overlay.remove();
-  overlay.onclick=e=>{if(e.target===overlay)overlay.remove()};
-  overlay.querySelector('.converter-confirm').onclick=()=>{
-    try{let result;if(category.value==='Temperatura'){const f=from.value,t=to.value;let c=f==='°C'?current:f==='°F'?(current-32)*5/9:current-273.15;result=t==='°C'?c:t==='°F'?c*9/5+32:c+273.15}else{const table=groups[category.value];result=current*table[from.value]/table[to.value]}setComputedValue(result,'Conversão',current+' '+from.value+' → '+to.value);overlay.remove();updateDisplay()}catch{$('#expression').textContent='Não foi possível converter'}
-  };
+  const screen=document.createElement('div');screen.className='converter-screen';document.body.appendChild(screen);
+  function header(title,back){return '<header class="converter-screen-header"><button class="converter-back" type="button" aria-label="Voltar">'+(back?'←':'×')+'</button><strong>'+title+'</strong></header>'}
+  function showCategories(){screen.innerHTML=header('Conversão de unidades',false)+'<main class="converter-category-list">'+Object.keys(groups).map(name=>'<button type="button" data-category="'+name+'"><span>'+name+'</span><span>›</span></button>').join('')+'</main>';screen.querySelector('.converter-back').onclick=()=>screen.remove();screen.querySelectorAll('[data-category]').forEach(button=>button.onclick=()=>showCategory(button.dataset.category))}
+  function showCategory(name){const table=groups[name],units=Object.keys(table);screen.innerHTML=header(name,true)+'<main class="converter-detail"><div class="converter-value-card"><label>Valor<input id="fullConvValue" inputmode="decimal" value="'+current+'"></label></div><div class="converter-full-row"><label>De<select id="fullConvFrom">'+units.map(u=>'<option>'+u+'</option>').join('')+'</select></label><span>→</span><label>Para<select id="fullConvTo">'+units.map(u=>'<option>'+u+'</option>').join('')+'</select></label></div><button class="converter-full-action" type="button">Converter</button><div class="converter-full-result">Selecione as unidades e converta.</div></main>';screen.querySelector('.converter-back').onclick=showCategories;const from=screen.querySelector('#fullConvFrom'),to=screen.querySelector('#fullConvTo');to.selectedIndex=Math.min(1,units.length-1);screen.querySelector('.converter-full-action').onclick=()=>{try{const value=Number(screen.querySelector('#fullConvValue').value.replace(',','.'));if(!Number.isFinite(value))throw Error();let result;if(name==='Temperatura'){let c=from.value==='°C'?value:from.value==='°F'?(value-32)*5/9:value-273.15;result=to.value==='°C'?c:to.value==='°F'?c*9/5+32:c+273.15}else result=value*table[from.value]/table[to.value];current=result;screen.querySelector('.converter-full-result').innerHTML='<small>Resultado</small><strong>'+String(+result.toPrecision(12))+' '+to.value+'</strong>';setComputedValue(result,'Conversão',value+' '+from.value+' → '+to.value)}catch{screen.querySelector('.converter-full-result').textContent='Valor inválido'}}}
+  showCategories()
 }
 function press(k){if(structuredEntry&&k!=='shift')return handleStructuredPress(k);if(k!=='equal'&&k!=='shift'&&k!=='cursorLeft'&&k!=='cursorRight')resultShown=false;if(k==='shift'){setShift(!shiftActive);return}if(k==='cursorLeft'){cursorPosition=Math.max(0,cursorPosition-1);updateDisplay();return}else if(k==='cursorRight'){cursorPosition=Math.min(expr.length,cursorPosition+1);updateDisplay();return}else if(k==='clear'){expr='';lastFormula='';cursorPosition=0;}else if(k==='back'){if(cursorPosition>0){expr=expr.slice(0,cursorPosition-1)+expr.slice(cursorPosition);cursorPosition--}}else if(k==='equal')calculate();else if(k==='neg'){expr=expr?`-(${expr})`:'-';cursorPosition=expr.length;}else if(k==='mode'){angleMode=angleMode==='DEG'?'RAD':'DEG';localStorage.setItem('wosvipAngleMode',angleMode);updateAngleMode()}else if(k==='limit'){calculateLimit();return}else if(k==='fraction'){try{expr=approximateFraction(safeEval(closeParentheses(expr)))}catch{$('#expression').textContent='Não foi possível converter'}}else if(k==='sci'){try{expr=safeEval(closeParentheses(expr)).toExponential(10)}catch{$('#expression').textContent='Expressão inválida'}}else if(k==='dms'){try{const v=safeEval(closeParentheses(expr)),d=Math.trunc(v),m=Math.trunc(Math.abs(v-d)*60),s=(Math.abs(v-d)*60-m)*60;lastFormula=expr;expr=`${d}°${m}′${+s.toPrecision(8)}″`;addHistory('DMS',lastFormula,expr)}catch{$('#expression').textContent='Expressão inválida'}}else if(k==='stats'){try{const values=expr.split(',').map(v=>safeEval(closeParentheses(v.trim()))).filter(Number.isFinite);if(!values.length)throw Error();const mean=values.reduce((a,b)=>a+b,0)/values.length;lastFormula=`Média de ${values.join(', ')}`;expr=String(+mean.toPrecision(12));addHistory('Estatística',lastFormula,expr)}catch{$('#expression').textContent='Digite valores separados por vírgula'}}else if(k==='variables'){const before=expr[cursorPosition-1];if(before==='X')expr=expr.slice(0,cursorPosition-1)+'Y'+expr.slice(cursorPosition);else if(before==='Y')expr=expr.slice(0,cursorPosition-1)+'M'+expr.slice(cursorPosition);else insertAtCursor('X')}else if(k==='memoryRecall'){insertAtCursor(String(memoryValue));$('#expression').textContent=`MR = ${memoryValue}`}else if(k==='memoryStore'){try{memoryValue=safeEval(closeParentheses(expr));localStorage.setItem('wosvipMemory',String(memoryValue));$('#expression').textContent=`M = ${memoryValue}`}catch{$('#expression').textContent='Nada válido para armazenar'}}else if(k==='memoryAdd'||k==='memorySubtract'){try{const value=safeEval(closeParentheses(expr));memoryValue+=k==='memoryAdd'?value:-value;localStorage.setItem('wosvipMemory',String(memoryValue));$('#expression').textContent=`M = ${memoryValue}`}catch{$('#expression').textContent='Expressão inválida'}}else if(k==='showHistory'){const lines=history.slice(0,10).map((h,i)=>`${i+1}. ${h.detail} = ${h.result}`);alert(lines.length?lines.join('\n'):'Histórico vazio')}
 else if(k==='integral'||k==='derivative'){startStructuredEntry(k);return}
