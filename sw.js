@@ -1,6 +1,6 @@
 "use strict";
-const CACHE_NAME = "wosvip-calculadora-v8-shift-numerico";
-const ARQUIVOS = ["./","./index.html","./manifest.json","./styles.css?v=8","./app.js?v=10","./icon.svg","./icon-192.png","./icon-512.png","./icon-maskable-192.png","./icon-maskable-512.png"];
+const CACHE_NAME = "wosvip-calculadora-v9-conversor";
+const ARQUIVOS = ["./","./index.html","./manifest.json","./styles.css?v=9","./app.js?v=11","./icon.svg","./icon-192.png","./icon-512.png","./icon-maskable-192.png","./icon-maskable-512.png"];
 self.addEventListener("install", event => {
   event.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(ARQUIVOS)));
   self.skipWaiting();
