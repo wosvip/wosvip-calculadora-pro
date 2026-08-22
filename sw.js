@@ -1,6 +1,6 @@
 "use strict";
-const CACHE_NAME = "wosvip-calculadora-v14-limite-unilateral";
-const ARQUIVOS = ["./","./index.html","./manifest.json","./styles.css?v=14","./app.js?v=16","./icon.svg","./icon-192.png","./icon-512.png","./icon-maskable-192.png","./icon-maskable-512.png"];
+const CACHE_NAME = "wosvip-calculadora-v15-conversoes-lista";
+const ARQUIVOS = ["./","./index.html","./manifest.json","./styles.css?v=15","./app.js?v=17","./icon.svg","./icon-192.png","./icon-512.png","./icon-maskable-192.png","./icon-maskable-512.png"];
 self.addEventListener("install", event => {
   event.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(ARQUIVOS)));
   self.skipWaiting();
