@@ -113,3 +113,5 @@ html.standalone-app body>header{display:none!important}
 
 .symbolic-terms{display:flex;align-items:center;justify-content:center;gap:9px;flex-wrap:wrap}.symbolic-terms .math-fraction{min-width:72px}.symbolic-sign{font-size:25px}.symbolic-term{display:inline-flex}
 .symbolic-reductions{display:grid;gap:12px}.symbolic-reduction-row{display:grid;grid-template-columns:18px 1fr 18px auto;gap:7px;align-items:center}.symbolic-reduction-row>b{font-size:22px}.symbolic-reduction-row>span{display:flex;align-items:center;gap:6px;flex-wrap:wrap}.symbolic-reduction-row i{font-style:normal;font-weight:800}.symbolic-reduction-row .math-fraction{min-width:48px}
+
+.calculation-domain{margin:10px 0 0!important;padding:9px 11px;border-left:4px solid #20c8b0;background:#343b40;border-radius:5px;color:#eef7ef!important;font-size:14px}

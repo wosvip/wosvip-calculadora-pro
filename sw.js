@@ -1,6 +1,6 @@
 "use strict";
-const CACHE_NAME = "wosvip-calculadora-v32-passos-algebricos";
-const ARQUIVOS = ["./","./index.html","./manifest.json","./styles.css?v=25","./app.js?v=34","./formula-ocr-worker.js?v=1","./icon.svg","./icon-192.png","./icon-512.png","./icon-maskable-192.png","./icon-maskable-512.png"];
+const CACHE_NAME = "wosvip-calculadora-v33-fatoracao";
+const ARQUIVOS = ["./","./index.html","./manifest.json","./styles.css?v=26","./app.js?v=35","./formula-ocr-worker.js?v=1","./icon.svg","./icon-192.png","./icon-512.png","./icon-maskable-192.png","./icon-maskable-512.png"];
 self.addEventListener("message", event => { if (event.data && event.data.type === "SKIP_WAITING") self.skipWaiting(); });
 self.addEventListener("install", event => {
   event.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(ARQUIVOS)));
