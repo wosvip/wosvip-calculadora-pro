@@ -57,7 +57,7 @@ function handleStructuredPress(k){
 function renderStructuredEntry(){
   const e=structuredEntry,slot=(name,value)=>'<span class="math-entry-slot '+(e.field===name?'active':'')+'">'+(value?formatMath(value):'□')+'</span>';
   if(e.type==='integral')return '<span class="integral-template"><span class="integral-limits"><span>'+slot('upper',e.upper)+'</span><span>'+slot('lower',e.lower)+'</span></span><span class="integral-symbol">∫</span><span class="integral-formula">'+slot('formula',e.formula)+'</span><span class="integral-dx">dX</span></span>';
-  if(e.type==='limit')return '<span class="limit-template"><span class="limit-operator"><span>lim</span><small>X → '+slot('point',e.point)+'</small></span><span>(</span>'+slot('formula',e.formula)+'<span>)</span><button type="button" class="limit-info-button" aria-label="Informações sobre limite">i</button></span>';
+  if(e.type==='limit')return '<span class="limit-template"><span class="limit-operator"><span>lim</span><small>X → '+slot('point',e.point)+'</small></span><span>(</span>'+slot('formula',e.formula)+'<span>)</span></span>'+(!/\d/.test(e.formula)?'<button type="button" class="limit-info-button" aria-label="Informações sobre limite">i</button>':'');
   return '<span class="derivative-template"><span class="derivative-frac"><span>d</span><span>dX</span></span><span>(</span>'+slot('formula',e.formula)+'<span>)</span><sub>X = '+slot('point',e.point)+'</sub></span>'
 }
 function parseSimpleComplex(value){
