@@ -302,12 +302,19 @@ function quadraticData(value){
   const real=clean(-qb/(2*qa)),imag=clean(Math.sqrt(-delta)/Math.abs(2*qa));
   return {a:qa,b:qb,c:qc,delta,roots:[real+(imag<0?' - ':' + ')+Math.abs(imag)+'i',real+(imag<0?' + ':' - ')+Math.abs(imag)+'i'],complex:true}
 }
-function solveQuadratic(value){
-  const data=quadraticData(value);if(!data)return false;
-  lastFormula=value;expr='x₁ = '+data.roots[0]+'; x₂ = '+data.roots[1];cursorPosition=expr.length;resultShown=true;
-  addHistory('Equação do 2º grau',lastFormula,expr);updateDisplay();return true
+function linearData(value){
+  const map=equationPolynomial(value);if(!map||[...map.keys()].some(power=>power>1))return null;
+  const coefficient=map.get(1)||0,constant=map.get(0)||0;if(Math.abs(coefficient)<1e-12)return null;
+  return {coefficient,constant,root:+(-constant/coefficient).toPrecision(12)}
 }
-function calculate(){try{if(expr.includes('=')&&solveQuadratic(expr))return;lastFormula=expr;if(hasImaginaryUnit(expr)){const z=parseSimpleComplex(expr);expr=formatComplex(z);cursorPosition=expr.length;addHistory('Complexo',lastFormula,expr);resultShown=true;updateDisplay();return}const source=closeParentheses(expr.replace(/(\d+(?:\.\d+)?)%(?![\d.(])/g,'($1/100)')),r=safeEval(source);if(!Number.isFinite(r))throw Error();addHistory('Científica',`${expr} [${angleMode}]`,String(+r.toPrecision(12)));expr=String(+r.toPrecision(12));cursorPosition=expr.length;lastAnswer=r;localStorage.setItem('wosvipLastAnswer',String(r));resultShown=true}catch{$('#expression').textContent='Expressão inválida';return}updateDisplay()}
+function solveEquation(value){
+  const quadratic=quadraticData(value);
+  if(quadratic){lastFormula=value;expr='x₁ = '+quadratic.roots[0]+'; x₂ = '+quadratic.roots[1];cursorPosition=expr.length;resultShown=true;addHistory('Equação do 2º grau',lastFormula,expr);updateDisplay();return true}
+  const linear=linearData(value);
+  if(linear){lastFormula=value;expr='x = '+linear.root;cursorPosition=expr.length;resultShown=true;addHistory('Equação do 1º grau',lastFormula,expr);updateDisplay();return true}
+  return false
+}
+function calculate(){try{if(expr.includes('=')&&solveEquation(expr))return;lastFormula=expr;if(hasImaginaryUnit(expr)){const z=parseSimpleComplex(expr);expr=formatComplex(z);cursorPosition=expr.length;addHistory('Complexo',lastFormula,expr);resultShown=true;updateDisplay();return}const source=closeParentheses(expr.replace(/(\d+(?:\.\d+)?)%(?![\d.(])/g,'($1/100)')),r=safeEval(source);if(!Number.isFinite(r))throw Error();addHistory('Científica',`${expr} [${angleMode}]`,String(+r.toPrecision(12)));expr=String(+r.toPrecision(12));cursorPosition=expr.length;lastAnswer=r;localStorage.setItem('wosvipLastAnswer',String(r));resultShown=true}catch{$('#expression').textContent='Expressão inválida';return}updateDisplay()}
 function escapeMath(value){return String(value).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
 function stripMathOuter(value){let s=String(value).trim();while(s.startsWith('(')&&s.endsWith(')')){let depth=0,wraps=true;for(let i=0;i<s.length;i++){depth+=s[i]==='('?1:s[i]===')'?-1:0;if(depth===0&&i<s.length-1){wraps=false;break}}if(!wraps)break;s=s.slice(1,-1).trim()}return s}
 function splitMathFraction(value){const s=String(value),parts=[];let depth=0;for(let i=0;i<s.length;i++){if(s[i]==='(')depth++;else if(s[i]===')')depth--;else if(s[i]==='/'&&depth===0){parts.push(stripMathOuter(s.slice(0,i)),stripMathOuter(s.slice(i+1)));return parts}}return null}
@@ -352,6 +359,17 @@ function numericCalculationSteps(formula,finalResult){
 }
 function polynomialTermText(coefficient,power){
   const negative=coefficient<0,amount=Math.abs(coefficient),coefficientText=power>0&&amount===1?'':stepNumber(amount),variable=power===0?'':power===1?'x':'x^'+power;return {negative,text:coefficientText+variable}
+}
+function linearCalculationSteps(formula,result){
+  const data=linearData(formula);if(!data)return null;
+  const opposite=-data.constant,coefficient=data.coefficient,root=data.root;
+  const moved=coefficient+'x = '+opposite;
+  return [
+    {title:'Expressão original',html:stepMath(formula)},
+    {title:'Passe o termo constante para o outro lado',html:stepMath(moved)},
+    {title:'Divida os dois lados pelo coeficiente de x',html:stepMath('x = '+opposite+'/'+coefficient)},
+    {title:'Resultado final',html:stepMath('x = '+root)}
+  ]
 }
 function quadraticCalculationSteps(formula,result){
   const data=quadraticData(formula);if(!data)return [{title:'Expressão original',html:stepMath(formula)},{title:'Expressão algébrica',html:'<p>Não foi possível identificar uma equação quadrática válida.</p>'}];
@@ -403,7 +421,7 @@ function calculationStepsContext(){
   const formula=(resultShown?lastFormula:expr)||'',preview=resultShown?expr:livePreview();if(!formula)return null;
   return {formula,result:preview||'',symbolic:/[xXyY]/.test(formula)}
 }
-function buildCalculationSteps(formula,result,symbolic){if(String(formula).includes('='))return quadraticCalculationSteps(formula,result);return symbolic?symbolicCalculationSteps(formula,result):numericCalculationSteps(formula,result)}
+function buildCalculationSteps(formula,result,symbolic){if(String(formula).includes('='))return linearCalculationSteps(formula,result)||quadraticCalculationSteps(formula,result);return symbolic?symbolicCalculationSteps(formula,result):numericCalculationSteps(formula,result)}
 function chatStepTitle(title){
   if(title==='Expressão original')return 'Considere a expressão:';
   if(title==='Resultado simplificado'||title==='Resultado final')return 'Portanto, o resultado é:';
