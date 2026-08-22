@@ -4,7 +4,7 @@
   <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="theme-color" content="#08111f"><meta name="description" content="Calculadora científica WOSVIP PRO instalável e offline"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="Calculadora PRO"><title>WOSVIP Calculadora PRO</title>
   <link rel="manifest" href="./manifest.json"><link rel="icon" href="./icon-192.png" type="image/png"><link rel="apple-touch-icon" sizes="192x192" href="./icon-192.png">
-  <link rel="stylesheet" href="styles.css?v=18">
+  <link rel="stylesheet" href="styles.css?v=19">
 </head>
 <body>
 <header><div><span class="logo">W</span><div><h1>WOSVIP Calculadora PRO</h1><p>Calculadora científica instalável</p></div></div><div class="header-actions"><button id="installBtn" class="install-btn" type="button">Instalar</button><button id="themeBtn" aria-label="Alternar tema">☀</button></div></header>
@@ -27,5 +27,5 @@
   <section id="convert" class="panel"><div class="card"><h2>Conversor de unidades</h2><div class="form-grid"><label>Categoria<select id="category"></select></label><label>Valor<input id="convValue" type="number" value="1" step="any"></label><label>De<select id="fromUnit"></select></label><label>Para<select id="toUnit"></select></label></div><button class="primary" id="convertCalc">Converter</button><div class="result" id="convertResult">Selecione as unidades.</div></div></section>
   <section id="graph" class="panel"><div class="card"><h2>Gráfico de função</h2><p class="hint">Use x, operadores e funções como sin(x), cos(x), sqrt(x) e log(x).</p><div class="graph-controls"><input id="functionInput" value="sin(x)" aria-label="Função"><label>x mín.<input id="xMin" type="number" value="-10"></label><label>x máx.<input id="xMax" type="number" value="10"></label><button class="primary" id="plotBtn">Traçar gráfico</button></div><canvas id="graphCanvas" width="1000" height="500"></canvas><div id="graphError" class="error"></div></div></section>
   <section id="history" class="panel"><div class="card"><div class="title-row"><h2>Histórico</h2><button class="danger" id="clearHistory">Limpar tudo</button></div><div id="historyList" class="history-list"></div></div></section>
-</main><footer>WOSVIP Calculadora PRO • Funciona diretamente no navegador</footer><script src="app.js?v=22"></script>
+</main><footer>WOSVIP Calculadora PRO • Funciona diretamente no navegador</footer><script src="app.js?v=23"></script>
 </body></html>
