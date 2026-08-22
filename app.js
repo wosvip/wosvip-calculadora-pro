@@ -130,7 +130,7 @@ function cameraCropCanvas(source,box){
   const canvas=document.createElement('canvas'),scale=1.35;canvas.width=Math.max(1,Math.round(box.width*scale));canvas.height=Math.max(1,Math.round(box.height*scale));const context=canvas.getContext('2d');context.fillStyle='#fff';context.fillRect(0,0,canvas.width,canvas.height);context.imageSmoothingEnabled=true;context.imageSmoothingQuality='high';context.drawImage(source,box.x,box.y,box.width,box.height,0,0,canvas.width,canvas.height);return canvas
 }
 function cleanCameraFractionPart(value){
-  return String(value||'').replace(/[|_]/g,'').replace(/[×·]/g,'*').replace(/[—–−]/g,'-').replace(/\s+/g,'').replace(/([0-9)])([XY])/g,(match,digit,variable)=>digit+variable.toLowerCase()).replace(/[XY](?=[0-9(])/g,variable=>variable.toLowerCase()).replace(/[?]/g,'^2').replace(/²/g,'^2').replace(/³/g,'^3').replace(/[^0-9xXyY+\-*/().^√]/g,'')
+  return String(value||'').replace(/[|_]/g,'').replace(/[×·]/g,'*').replace(/[—–−]/g,'-').replace(/\s+/g,'').replace(/([0-9)])([XY])/g,(match,digit,variable)=>digit+variable.toLowerCase()).replace(/[XY](?=[0-9(])/g,variable=>variable.toLowerCase()).replace(/[?]/g,'^2').replace(/²/g,'^2').replace(/³/g,'^3').replace(/[^0-9xXyY+\-*/().^√=]/g,'')
 }
 function readLatexGroup(text,start){
   if(text[start]!=='{')return null;let depth=0;
@@ -144,9 +144,10 @@ function expandLatexFractions(value){
 }
 function latexToCalculator(value){
   let text=expandLatexFractions(String(value||'').replace(/\\left|\\right/g,''));
+  text=text.replace(/^\s*\d+\.\s+(?=(?:\d+\s*)?[xXyY])/,'');
   for(let guard=0;guard<8;guard++){const match=/\\sqrt\s*\{/.exec(text);if(!match)break;const start=match.index+match[0].lastIndexOf('{'),group=readLatexGroup(text,start);if(!group)break;text=text.slice(0,match.index)+'√('+latexToCalculator(group.value)+')'+text.slice(group.end)}
   text=text.replace(/\\(?:cdot|times)/g,'*').replace(/\\div/g,'/').replace(/\\(?:mathrm|text|operatorname)\s*\{([^{}]*)\}/g,'$1').replace(/\^\s*\{(-?\d+(?:\.\d+)?)\}/g,'^$1').replace(/\^\s*\{([^{}]+)\}/g,'^($1)').replace(/_\s*\{[^{}]*\}/g,'').replace(/[{}]/g,'').replace(/[×·]/g,'*').replace(/[—–−]/g,'-').replace(/\\,/g,'').replace(/\\[a-zA-Z]+/g,'').replace(/\s+/g,'').replace(/X/g,'x').replace(/Y/g,'y');
-  text=text.replace(/\^\((-?\d+(?:\.\d+)?)\)/g,'^$1').replace(/(\d|x|y|\))(?=x|y|\()/g,'$1*').replace(/\)(?=\d)/g,')*').replace(/[^0-9xy+\-*/().^√]/g,'');
+  text=text.replace(/\^\((-?\d+(?:\.\d+)?)\)/g,'^$1').replace(/(\d|x|y|\))(?=x|y|\()/g,'$1*').replace(/\)(?=\d)/g,')*').replace(/[^0-9xy+\-*/().^√=]/g,'').replace(/\.$/,'');
   const splitMinus=text.match(/^\(([^()]+)\)\/\(([^()]+)\)\*?\(([^()]+)\)\/\(([^()]+)\)$/);if(splitMinus)text='('+splitMinus[1]+'-'+splitMinus[3]+')/('+splitMinus[2]+'-'+splitMinus[4]+')';
   return text
 }
@@ -175,14 +176,14 @@ async function recognizeCameraMath(image,onProgress){
   try{
     const regions=cameraFractionRegions(prepared);
     if(regions){
-      await worker.setParameters({tessedit_pageseg_mode:'7',tessedit_char_whitelist:'0123456789xXyY+-*/()^√.²³',preserve_interword_spaces:'1'});
+      await worker.setParameters({tessedit_pageseg_mode:'7',tessedit_char_whitelist:'0123456789xXyY+-*/()^√.=²³',preserve_interword_spaces:'1'});
       window.__wosvipOcrPhase=0;window.__wosvipOcrRange=42;const numeratorResult=await worker.recognize(cameraCropCanvas(prepared,regions.numerator));
       window.__wosvipOcrPhase=45;window.__wosvipOcrRange=42;const denominatorResult=await worker.recognize(cameraCropCanvas(prepared,regions.denominator));
       const numerator=cleanCameraFractionPart(numeratorResult.data&&numeratorResult.data.text),denominator=cleanCameraFractionPart(denominatorResult.data&&denominatorResult.data.text);
       if(numerator&&denominator&&/[0-9xXyY]/.test(numerator)&&/[0-9xXyY]/.test(denominator)){onProgress?.(100);return '('+numerator+')/('+denominator+')'}
     }
     window.__wosvipOcrPhase=0;window.__wosvipOcrRange=46;await worker.setParameters({tessedit_pageseg_mode:'6',tessedit_char_whitelist:'',preserve_interword_spaces:'1'});const primary=await worker.recognize(prepared);
-    window.__wosvipOcrPhase=50;window.__wosvipOcrRange=46;await worker.setParameters({tessedit_pageseg_mode:'11',tessedit_char_whitelist:'0123456789xXyY+-*/()^√.²³',preserve_interword_spaces:'1'});const alternate=await worker.recognize(prepared);
+    window.__wosvipOcrPhase=50;window.__wosvipOcrRange=46;await worker.setParameters({tessedit_pageseg_mode:'11',tessedit_char_whitelist:'0123456789xXyY+-*/()^√.=²³',preserve_interword_spaces:'1'});const alternate=await worker.recognize(prepared);
     onProgress?.(100);return combineCameraOcr(primary.data&&primary.data.text,alternate.data&&alternate.data.text)
   }finally{window.__wosvipOcrProgress=null}
 }
@@ -287,7 +288,26 @@ else if(k==='compare'){try{const a=safeEval(closeParentheses(expr)),raw=prompt('
 else if(k==='noop')return;else{const map={sin:'sin(',cos:'cos(',tan:'tan(',asin:'asin(',acos:'acos(',atan:'atan(',sqrt:'√(',cbrt:'∛(',pi:'π',pow:'^',yroot:'^(1/',inv:'1/(',sq:'^2',cube:'^3',ln:'ln(',log:'log(',pow10:'10^',powE:'e^',variable:'X',variableY:'Y',e:'e',exp:'×10^'};insertAtCursor(map[k]??k)}cursorPosition=Math.min(cursorPosition,expr.length);updateDisplay()}
 function safeEval(source,x,y){let normalized=String(source).replace(/\bmod\b/gi,'%').replace(/X/g,'x').replace(/Y/g,'y').replace(/M/g,'mem').replace(/√/g,'sqrt').replace(/∛/g,'cbrt').replace(/π/g,'pi').replace(/×/g,'*').replace(/÷/g,'/');if(!/^[0-9x+\-*/^().,%\s_a-z*]+$/i.test(normalized))throw Error('Caracteres inválidos');const toRad=v=>angleMode==='DEG'?v*Math.PI/180:v,fromRad=v=>angleMode==='DEG'?v*180/Math.PI:v,trigSin=v=>Math.sin(toRad(v)),trigCos=v=>Math.cos(toRad(v)),trigTan=v=>Math.tan(toRad(v)),trigAsin=v=>fromRad(Math.asin(v)),trigAcos=v=>fromRad(Math.acos(v)),trigAtan=v=>fromRad(Math.atan(v));let s=normalized.replace(/\^/g,'**').replace(/\bpi\b/gi,'Math.PI').replace(/\be\b/g,'Math.E').replace(/\basin\b/g,'trigAsin').replace(/\bacos\b/g,'trigAcos').replace(/\batan\b/g,'trigAtan').replace(/\bsin\b/g,'trigSin').replace(/\bcos\b/g,'trigCos').replace(/\btan\b/g,'trigTan').replace(/\bcbrt\b/g,'Math.cbrt').replace(/\bsqrt\b/g,'Math.sqrt').replace(/\bln\b/g,'Math.log').replace(/\blog\b/g,'Math.log10').replace(/\babs\b/g,'Math.abs').replace(/\bexp\b/g,'Math.exp');return Function('x','y','mem','trigSin','trigCos','trigTan','trigAsin','trigAcos','trigAtan',`"use strict";return (${s})`)(x,y,memoryValue,trigSin,trigCos,trigTan,trigAsin,trigAcos,trigAtan)}
 function hasImaginaryUnit(value){return /(^|[^A-Za-z])i($|[^A-Za-z])/.test(String(value||''))}
-function calculate(){try{lastFormula=expr;if(hasImaginaryUnit(expr)){const z=parseSimpleComplex(expr);expr=formatComplex(z);cursorPosition=expr.length;addHistory('Complexo',lastFormula,expr);resultShown=true;updateDisplay();return}const source=closeParentheses(expr.replace(/(\d+(?:\.\d+)?)%(?![\d.(])/g,'($1/100)')),r=safeEval(source);if(!Number.isFinite(r))throw Error();addHistory('Científica',`${expr} [${angleMode}]`,String(+r.toPrecision(12)));expr=String(+r.toPrecision(12));cursorPosition=expr.length;lastAnswer=r;localStorage.setItem('wosvipLastAnswer',String(r));resultShown=true}catch{$('#expression').textContent='Expressão inválida';return}updateDisplay()}
+function equationPolynomial(value){
+  const parts=String(value).split('=');if(parts.length!==2)return null;
+  const left=parseSimplePolynomial(parts[0]),right=parseSimplePolynomial(parts[1]);if(!left||!right)return null;
+  const map=new Map(left);for(const [power,coefficient] of right)map.set(power,(map.get(power)||0)-coefficient);
+  return map
+}
+function quadraticData(value){
+  const map=equationPolynomial(value);if(!map||[...map.keys()].some(power=>power>2)||Math.abs(map.get(2)||0)<1e-12)return null;
+  const qa=map.get(2)||0,qb=map.get(1)||0,qc=map.get(0)||0,delta=qb*qb-4*qa*qc;
+  const clean=n=>+n.toPrecision(12);
+  if(delta>=0){const root=Math.sqrt(delta);return {a:qa,b:qb,c:qc,delta,roots:[clean((-qb+root)/(2*qa)),clean((-qb-root)/(2*qa))],complex:false}}
+  const real=clean(-qb/(2*qa)),imag=clean(Math.sqrt(-delta)/Math.abs(2*qa));
+  return {a:qa,b:qb,c:qc,delta,roots:[real+(imag<0?' - ':' + ')+Math.abs(imag)+'i',real+(imag<0?' + ':' - ')+Math.abs(imag)+'i'],complex:true}
+}
+function solveQuadratic(value){
+  const data=quadraticData(value);if(!data)return false;
+  lastFormula=value;expr='x₁ = '+data.roots[0]+'; x₂ = '+data.roots[1];cursorPosition=expr.length;resultShown=true;
+  addHistory('Equação do 2º grau',lastFormula,expr);updateDisplay();return true
+}
+function calculate(){try{if(expr.includes('=')&&solveQuadratic(expr))return;lastFormula=expr;if(hasImaginaryUnit(expr)){const z=parseSimpleComplex(expr);expr=formatComplex(z);cursorPosition=expr.length;addHistory('Complexo',lastFormula,expr);resultShown=true;updateDisplay();return}const source=closeParentheses(expr.replace(/(\d+(?:\.\d+)?)%(?![\d.(])/g,'($1/100)')),r=safeEval(source);if(!Number.isFinite(r))throw Error();addHistory('Científica',`${expr} [${angleMode}]`,String(+r.toPrecision(12)));expr=String(+r.toPrecision(12));cursorPosition=expr.length;lastAnswer=r;localStorage.setItem('wosvipLastAnswer',String(r));resultShown=true}catch{$('#expression').textContent='Expressão inválida';return}updateDisplay()}
 function escapeMath(value){return String(value).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
 function stripMathOuter(value){let s=String(value).trim();while(s.startsWith('(')&&s.endsWith(')')){let depth=0,wraps=true;for(let i=0;i<s.length;i++){depth+=s[i]==='('?1:s[i]===')'?-1:0;if(depth===0&&i<s.length-1){wraps=false;break}}if(!wraps)break;s=s.slice(1,-1).trim()}return s}
 function splitMathFraction(value){const s=String(value),parts=[];let depth=0;for(let i=0;i<s.length;i++){if(s[i]==='(')depth++;else if(s[i]===')')depth--;else if(s[i]==='/'&&depth===0){parts.push(stripMathOuter(s.slice(0,i)),stripMathOuter(s.slice(i+1)));return parts}}return null}
@@ -333,6 +353,21 @@ function numericCalculationSteps(formula,finalResult){
 function polynomialTermText(coefficient,power){
   const negative=coefficient<0,amount=Math.abs(coefficient),coefficientText=power>0&&amount===1?'':stepNumber(amount),variable=power===0?'':power===1?'x':'x^'+power;return {negative,text:coefficientText+variable}
 }
+function quadraticCalculationSteps(formula,result){
+  const data=quadraticData(formula);if(!data)return [{title:'Expressão original',html:stepMath(formula)},{title:'Expressão algébrica',html:'<p>Não foi possível identificar uma equação quadrática válida.</p>'}];
+  const deltaText='Δ = ('+data.b+')^2 - 4×('+data.a+')×('+data.c+') = '+stepNumber(data.delta);
+  const formulaText='x = (-b ± √Δ)/(2a)';
+  const rootsText=data.complex?'x₁ = '+data.roots[0]+'; x₂ = '+data.roots[1]:'x₁ = '+stepNumber(data.roots[0])+'; x₂ = '+stepNumber(data.roots[1]);
+  const steps=[
+    {title:'Expressão original',html:stepMath(formula)},
+    {title:'Identifique os coeficientes',html:stepMath('a = '+data.a+', b = '+data.b+', c = '+data.c)},
+    {title:'Calcule o discriminante',html:stepMath(deltaText)}
+  ];
+  if(data.complex)steps.push({title:'Interprete o discriminante',html:'<p>Como Δ &lt; 0, a equação não possui raízes reais. As soluções pertencem aos números complexos.</p>'});
+  steps.push({title:'Aplique a fórmula de Bhaskara',html:stepMath(formulaText)});
+  steps.push({title:'Resultado final',html:stepMath(rootsText)});
+  return steps
+}
 function symbolicCalculationSteps(formula,result){
   const steps=[{title:'Expressão original',html:stepMath(formula)}],fraction=splitMathFraction(formula);
   if(fraction){
@@ -368,7 +403,7 @@ function calculationStepsContext(){
   const formula=(resultShown?lastFormula:expr)||'',preview=resultShown?expr:livePreview();if(!formula)return null;
   return {formula,result:preview||'',symbolic:/[xXyY]/.test(formula)}
 }
-function buildCalculationSteps(formula,result,symbolic){return symbolic?symbolicCalculationSteps(formula,result):numericCalculationSteps(formula,result)}
+function buildCalculationSteps(formula,result,symbolic){if(String(formula).includes('='))return quadraticCalculationSteps(formula,result);return symbolic?symbolicCalculationSteps(formula,result):numericCalculationSteps(formula,result)}
 function chatStepTitle(title){
   if(title==='Expressão original')return 'Considere a expressão:';
   if(title==='Resultado simplificado'||title==='Resultado final')return 'Portanto, o resultado é:';
@@ -393,7 +428,7 @@ async function showCalculationSteps(){
   document.body.appendChild(overlay);const close=()=>overlay.remove();overlay.querySelector('header button').onclick=close;overlay.onclick=event=>{if(event.target===overlay)close()};
   const list=overlay.querySelector('.calculation-steps-list'),status=overlay.querySelector('.calculation-engine-status');
   try{
-    if(!context.symbolic||!window.WosvipAdvancedMath)throw new Error('Usar motor local');
+    if(!context.symbolic||!window.WosvipAdvancedMath||context.formula.includes('='))throw new Error('Usar solucionador de equações local');
     const advanced=await window.WosvipAdvancedMath.solve(context.formula);
     if(!document.body.contains(overlay))return;
     if(!advanced.verified)throw new Error('A equivalência não pôde ser confirmada.');
@@ -411,7 +446,7 @@ async function showCalculationSteps(){
 function updateStepsButton(){
   const button=$('#resultStepsBtn');if(!button)return;const context=calculationStepsContext();button.hidden=!context||(!context.result&&!context.symbolic)
 }
-function livePreview(){if(!expr||hasImaginaryUnit(expr))return '';if(/[xXyY]/.test(expr))return simplifySymbolic(expr);try{const source=closeParentheses(expr.replace(/(\d+(?:\.\d+)?)%(?![\d.(])/g,'($1/100)')),value=safeEval(source);return Number.isFinite(value)?String(+value.toPrecision(12)):''}catch{return ''}}
+function livePreview(){if(!expr||hasImaginaryUnit(expr)||expr.includes('='))return '';if(/[xXyY]/.test(expr))return simplifySymbolic(expr);try{const source=closeParentheses(expr.replace(/(\d+(?:\.\d+)?)%(?![\d.(])/g,'($1/100)')),value=safeEval(source);return Number.isFinite(value)?String(+value.toPrecision(12)):''}catch{return ''}}
 function updateDisplay(){cursorPosition=Math.max(0,Math.min(cursorPosition,expr.length));const display=$('#expression');if(structuredEntry){display.innerHTML=renderStructuredEntry();$('#screen').value='';updateStepsButton();const info=display.querySelector('.limit-info-button');if(info)info.onclick=event=>{event.stopPropagation();showLimitInfo()};return}if(resultShown)display.innerHTML=lastFormula?formatMath(lastFormula):'Pronto';else if(expr)display.innerHTML=formatMath(expr.slice(0,cursorPosition))+'<span class="edit-caret" aria-hidden="true"></span>'+formatMath(expr.slice(cursorPosition));else display.innerHTML='<span class="edit-caret" aria-hidden="true"></span>';$('#screen').value=resultShown?expr:livePreview();updateStepsButton();requestAnimationFrame(()=>{const caret=display.querySelector('.edit-caret');if(caret)caret.scrollIntoView({block:'nearest',inline:'nearest'})})}updateDisplay();$('#resultStepsBtn').onclick=showCalculationSteps;
 $('#financeCalc').onclick=()=>{const c=+$('#capital').value,r=+$('#rate').value/100,n=+$('#periods').value,t=$('#finType').value;if(c<0||n<=0||!Number.isFinite(r))return;let value,label;if(t==='compound'){value=c*(1+r)**n;label='Montante'}else if(t==='simple'){value=c*(1+r*n);label='Montante'}else{value=r===0?c/n:c*r*(1+r)**n/((1+r)**n-1);label='Parcela'}const interest=t==='payment'?null:value-c;const out=`<strong>${label}: ${money(value)}</strong>${interest!==null?`<br>Juros acumulados: ${money(interest)}`:`<br>Total pago: ${money(value*n)}`}`;$('#financeResult').innerHTML=out;addHistory('Financeira',`${t}: ${money(c)}, ${r*100}% × ${n}`,`${label}: ${money(value)}`)};
 const units={Comprimento:{metro:1,quilômetro:1000,centímetro:.01,milímetro:.001,polegada:.0254,pé:.3048,milha:1609.344},Massa:{quilograma:1,grama:.001,miligrama:.000001,tonelada:1000,libra:.45359237,onça:.0283495},Área:{'m²':1,'km²':1e6,'cm²':1e-4,hectare:1e4,'pé²':.092903},Volume:{litro:1,mililitro:.001,'m³':1000,galão:3.785411784},Velocidade:{'m/s':1,'km/h':1/3.6,'mph':.44704},Temperatura:{C:'C',F:'F',K:'K'}};
