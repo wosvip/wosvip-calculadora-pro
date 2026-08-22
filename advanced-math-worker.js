@@ -9,7 +9,7 @@ function boot(){
     await pyodide.loadPackage("sympy");
     await pyodide.runPythonAsync(`
 import json, re
-from sympy import symbols, factor, cancel, together, fraction, solve, Eq, simplify
+from sympy import symbols, factor, cancel, together, fraction, solve, Eq, simplify, expand
 from sympy.parsing.sympy_parser import parse_expr, standard_transformations, implicit_multiplication_application, convert_xor
 
 TRANSFORMS = standard_transformations + (implicit_multiplication_application, convert_xor)
@@ -68,13 +68,13 @@ def solve_wosvip(source):
     steps = [{"title": "Vamos simplificar a expressão", "math": source}]
     if original_den != 1:
         if factored_num != original_num:
-            steps.append({"title": "Fatoramos o numerador", "math": txt(original_num)+" = "+txt(factored_num)})
+            steps.append({"title": "Fatoramos o numerador", "math": txt(expand(original_num))+" = "+txt(factored_num)})
         if factored_den != original_den:
-            steps.append({"title": "Fatoramos o denominador", "math": txt(original_den)+" = "+txt(factored_den)})
+            steps.append({"title": "Fatoramos o denominador", "math": txt(expand(original_den))+" = "+txt(factored_den)})
         if factored_num != original_num or factored_den != original_den:
             steps.append({"title": "Substituímos as formas fatoradas", "math": "("+txt(factored_num)+")/("+txt(factored_den)+")"})
         if factored_num != original_num or factored_den != original_den or simplified != combined:
-            steps.append({"title": "Cancelamos somente os fatores comuns", "math": "("+txt(factored_num)+")/("+txt(factored_den)+") = "+txt(simplified)})
+            steps.append({"title": "Cancelamos o fator comum", "math": "("+txt(factored_num)+")/("+txt(factored_den)+")", "after": txt(simplified)})
     elif factor(expression) != expression:
         steps.append({"title": "Fatoramos a expressão", "math": txt(expression)+" = "+txt(factor(expression))})
     if simplified == combined and factored_num == original_num and factored_den == original_den and original_den != 1:
