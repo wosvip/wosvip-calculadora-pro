@@ -129,3 +129,19 @@ html.standalone-app body>header{display:none!important}
 .chat-math-solution .calculation-domain{margin-top:13px!important;padding:10px 0;border:0;border-top:1px solid #2f343a;border-radius:0;background:transparent;color:#d8dadd!important}
 .chat-math-solution .symbolic-reductions{gap:14px}.chat-math-solution .symbolic-reduction-row{padding:3px 0}
 @media(max-width:560px){.chat-math-solution header{padding:17px 18px 12px}.chat-math-solution .calculation-steps-list{padding:0 18px 22px}.chat-math-solution .calculation-steps-list article{padding:18px 0}.chat-math-solution .calculation-step-math{font-size:23px}}
+
+/* Motor simbólico avançado */
+.calculation-engine-status{display:flex;align-items:center;gap:12px;margin:0 22px;padding:14px 0;border-bottom:1px solid #292d32;color:#f5f7f8}
+.calculation-engine-status>div{display:grid;gap:3px}
+.calculation-engine-status strong{font-size:14px}
+.calculation-engine-status small{color:#aeb4bc;font-size:12px;line-height:1.35}
+.advanced-engine-spinner{width:20px;height:20px;border:3px solid #344047;border-top-color:#22cbb3;border-radius:50%;animation:advancedEngineSpin .8s linear infinite;flex:0 0 auto}
+.advanced-engine-ok,.advanced-engine-local{display:grid;place-items:center;width:23px;height:23px;border-radius:50%;background:#20cbb2;color:#041513;font-weight:900;flex:0 0 auto}
+.advanced-engine-local{background:#3a424b;color:#dce1e6}
+.calculation-engine-status.is-ready{color:#bff8e8}
+.calculation-engine-status.is-fallback{color:#dce1e6}
+.advanced-step-text{margin:8px 0;color:#fff;font-size:20px}
+.advanced-step-note{margin:12px 0 0;padding-left:12px;border-left:3px solid #20cbb2;color:#cbd1d6;line-height:1.5}
+.chat-math-solution .advanced-final-result .calculation-step-math{font-size:30px;font-weight:700}
+@keyframes advancedEngineSpin{to{transform:rotate(360deg)}}
+@media(max-width:560px){.calculation-engine-status{margin:0 16px;padding:12px 0}.calculation-engine-status small{font-size:11px}.chat-math-solution .advanced-final-result .calculation-step-math{font-size:27px}}

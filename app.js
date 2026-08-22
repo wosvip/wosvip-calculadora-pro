@@ -370,11 +370,31 @@ function chatStepTitle(title){
   if(title.startsWith('Calcule'))return title.replace('Calcule','Calculando')+':';
   return title.endsWith(':')?title:title+':'
 }
-function showCalculationSteps(){
+function advancedMathStepHtml(step){
+  const math=step.math?stepMath(step.math):'',text=step.text?'<p class="advanced-step-text">'+String(step.text).replace(/[<&]/g,char=>char==='<'?'&lt;':'&amp;')+'</p>':'',note=step.note?'<p class="advanced-step-note">'+String(step.note).replace(/[<&]/g,char=>char==='<'?'&lt;':'&amp;')+'</p>':'';
+  return '<article'+(step.result?' class="advanced-final-result"':'')+'><div><strong>'+String(step.title||'Etapa matemática')+':</strong>'+math+text+note+'</div></article>'
+}
+async function showCalculationSteps(){
   const context=calculationStepsContext();if(!context)return;document.querySelector('.calculation-steps-overlay')?.remove();
-  const steps=buildCalculationSteps(context.formula,context.result,context.symbolic),overlay=document.createElement('div');overlay.className='calculation-steps-overlay';
-  overlay.innerHTML='<section class="calculation-steps-card chat-math-solution" role="dialog" aria-modal="true" aria-label="Resolução matemática"><header><h2>Resolução matemática</h2><button type="button" aria-label="Fechar">×</button></header><div class="calculation-steps-list">'+steps.map(step=>'<article><div><strong>'+chatStepTitle(step.title)+'</strong>'+step.html+'</div></article>').join('')+'</div></section>';
-  document.body.appendChild(overlay);const close=()=>overlay.remove();overlay.querySelector('header button').onclick=close;overlay.onclick=event=>{if(event.target===overlay)close()}
+  const overlay=document.createElement('div');overlay.className='calculation-steps-overlay';
+  overlay.innerHTML='<section class="calculation-steps-card chat-math-solution" role="dialog" aria-modal="true" aria-label="Resolução matemática"><header><h2>Resolução matemática</h2><button type="button" aria-label="Fechar">×</button></header><div class="calculation-engine-status"><span class="advanced-engine-spinner"></span><div><strong>Preparando o motor matemático avançado</strong><small>Na primeira utilização, o carregamento pode demorar alguns segundos.</small></div></div><div class="calculation-steps-list"></div></section>';
+  document.body.appendChild(overlay);const close=()=>overlay.remove();overlay.querySelector('header button').onclick=close;overlay.onclick=event=>{if(event.target===overlay)close()};
+  const list=overlay.querySelector('.calculation-steps-list'),status=overlay.querySelector('.calculation-engine-status');
+  try{
+    if(!context.symbolic||!window.WosvipAdvancedMath)throw new Error('Usar motor local');
+    const advanced=await window.WosvipAdvancedMath.solve(context.formula);
+    if(!document.body.contains(overlay))return;
+    if(!advanced.verified)throw new Error('A equivalência não pôde ser confirmada.');
+    list.innerHTML=advanced.steps.map(advancedMathStepHtml).join('');
+    status.innerHTML='<span class="advanced-engine-ok">✓</span><div><strong>Resultado verificado pelo motor simbólico</strong><small>As transformações foram conferidas antes da apresentação.</small></div>';
+    status.classList.add('is-ready');
+  }catch(error){
+    if(!document.body.contains(overlay))return;
+    const steps=buildCalculationSteps(context.formula,context.result,context.symbolic);
+    list.innerHTML=steps.map(step=>'<article><div><strong>'+chatStepTitle(step.title)+'</strong>'+step.html+'</div></article>').join('');
+    status.innerHTML='<span class="advanced-engine-local">◆</span><div><strong>Resolução pelo motor local</strong><small>O modo avançado não ficou disponível nesta consulta; o cálculo existente foi preservado.</small></div>';
+    status.classList.add('is-fallback');
+  }
 }
 function updateStepsButton(){
   const button=$('#resultStepsBtn');if(!button)return;const context=calculationStepsContext();button.hidden=!context||(!context.result&&!context.symbolic)
@@ -399,5 +419,5 @@ updateInstallButton();
 if('serviceWorker'in navigator){
   let serviceWorkerRefreshing=false;
   navigator.serviceWorker.addEventListener('controllerchange',()=>{if(serviceWorkerRefreshing)return;serviceWorkerRefreshing=true;if(!sessionStorage.getItem('wosvip-sw-reloaded')){sessionStorage.setItem('wosvip-sw-reloaded','1');location.reload()}});
-  window.addEventListener('load',async()=>{try{const registration=await navigator.serviceWorker.register('./sw.js?v=30',{updateViaCache:'none'});await registration.update();if(registration.waiting)registration.waiting.postMessage({type:'SKIP_WAITING'});setTimeout(()=>sessionStorage.removeItem('wosvip-sw-reloaded'),8000)}catch{}});
+  window.addEventListener('load',async()=>{try{const registration=await navigator.serviceWorker.register('./sw.js?v=31',{updateViaCache:'none'});await registration.update();if(registration.waiting)registration.waiting.postMessage({type:'SKIP_WAITING'});setTimeout(()=>sessionStorage.removeItem('wosvip-sw-reloaded'),8000)}catch{}});
 }
