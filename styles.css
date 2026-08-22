@@ -80,3 +80,5 @@ html.standalone-app body>header{display:none!important}
   html.standalone-app .classic-key-wrap .number-key,html.standalone-app .classic-key-wrap .operator-key,html.standalone-app .classic-key-wrap .enter-key{height:clamp(39px,5.6dvh,47px)}
   html.standalone-app .classic-key-wrap::before{top:-15px}
 }
+
+.math-camera-stage{touch-action:none;user-select:none;-webkit-user-select:none;overscroll-behavior:contain}.math-camera-stage video{pointer-events:none}.math-camera-frame{right:auto;width:88%;touch-action:none;pointer-events:none}.math-camera-frame:before,.math-camera-frame:after{pointer-events:none}.math-camera-stage p{pointer-events:none}.math-camera-frame{background:linear-gradient(90deg,#fff 0 18px,transparent 18px calc(100% - 18px),#fff calc(100% - 18px)) top/100% 3px no-repeat,linear-gradient(90deg,#fff 0 18px,transparent 18px calc(100% - 18px),#fff calc(100% - 18px)) bottom/100% 3px no-repeat,linear-gradient(#fff 0 18px,transparent 18px calc(100% - 18px),#fff calc(100% - 18px)) left/3px 100% no-repeat,linear-gradient(#fff 0 18px,transparent 18px calc(100% - 18px),#fff calc(100% - 18px)) right/3px 100% no-repeat}

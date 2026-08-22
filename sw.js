@@ -1,6 +1,6 @@
 "use strict";
-const CACHE_NAME = "wosvip-calculadora-v22-tela-cheia";
-const ARQUIVOS = ["./","./index.html","./manifest.json","./styles.css?v=20","./app.js?v=24","./icon.svg","./icon-192.png","./icon-512.png","./icon-maskable-192.png","./icon-maskable-512.png"];
+const CACHE_NAME = "wosvip-calculadora-v23-recorte-camera";
+const ARQUIVOS = ["./","./index.html","./manifest.json","./styles.css?v=21","./app.js?v=25","./icon.svg","./icon-192.png","./icon-512.png","./icon-maskable-192.png","./icon-maskable-512.png"];
 self.addEventListener("install", event => {
   event.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(ARQUIVOS)));
   self.skipWaiting();
