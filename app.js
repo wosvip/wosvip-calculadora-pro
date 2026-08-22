@@ -131,7 +131,44 @@ function cameraCropCanvas(source,box){
 function cleanCameraFractionPart(value){
   return String(value||'').replace(/[|_]/g,'').replace(/[×·]/g,'*').replace(/[—–−]/g,'-').replace(/\s+/g,'').replace(/([0-9)])X/gi,'$1x').replace(/X(?=[0-9(])/g,'x').replace(/[?]/g,'^2').replace(/²/g,'^2').replace(/³/g,'^3').replace(/[^0-9xX+\-*/().^√]/g,'')
 }
+function readLatexGroup(text,start){
+  if(text[start]!=='{')return null;let depth=0;
+  for(let i=start;i<text.length;i++){if(text[i]==='{')depth++;else if(text[i]==='}'&&--depth===0)return {value:text.slice(start+1,i),end:i+1}}
+  return null
+}
+function expandLatexFractions(value){
+  let text=String(value||'');
+  for(let guard=0;guard<12;guard++){const match=/\\(?:d|t)?frac\s*\{/.exec(text);if(!match)break;const firstStart=match.index+match[0].lastIndexOf('{'),first=readLatexGroup(text,firstStart);if(!first)break;let secondStart=first.end;while(/\s/.test(text[secondStart]||''))secondStart++;const second=readLatexGroup(text,secondStart);if(!second)break;text=text.slice(0,match.index)+'('+expandLatexFractions(first.value)+')/('+expandLatexFractions(second.value)+')'+text.slice(second.end)}
+  return text
+}
+function latexToCalculator(value){
+  let text=expandLatexFractions(String(value||'').replace(/\\left|\\right/g,''));
+  for(let guard=0;guard<8;guard++){const match=/\\sqrt\s*\{/.exec(text);if(!match)break;const start=match.index+match[0].lastIndexOf('{'),group=readLatexGroup(text,start);if(!group)break;text=text.slice(0,match.index)+'√('+latexToCalculator(group.value)+')'+text.slice(group.end)}
+  text=text.replace(/\\(?:cdot|times)/g,'*').replace(/\\div/g,'/').replace(/\\(?:mathrm|text|operatorname)\s*\{([^{}]*)\}/g,'$1').replace(/\^\s*\{([^{}]+)\}/g,'^($1)').replace(/_\s*\{[^{}]*\}/g,'').replace(/[{}]/g,'').replace(/[×·]/g,'*').replace(/[—–−]/g,'-').replace(/\\,/g,'').replace(/\\[a-zA-Z]+/g,'').replace(/\s+/g,'').replace(/X/g,'x');
+  text=text.replace(/(\d|x|\))(?=x|\()/g,'$1*').replace(/\)(?=\d)/g,')*').replace(/[^0-9x+\-*/().^√]/g,'');
+  return text
+}
+async function cameraImageBlob(image){
+  if(image instanceof Blob)return image;
+  if(typeof image==='string')return fetch(image).then(response=>response.blob());
+  if(image instanceof HTMLCanvasElement)return new Promise((resolve,reject)=>image.toBlob(blob=>blob?resolve(blob):reject(new Error('Imagem inválida')),'image/png'));
+  throw new Error('Formato de imagem incompatível')
+}
+async function recognizeFormulaModel(image,onProgress){
+  if(!window.Worker)throw new Error('Leitor matemático incompatível');
+  if(!window.__wosvipFormulaWorker){
+    const worker=new Worker('./formula-ocr-worker.js?v=1',{type:'module'});window.__wosvipFormulaWorker=worker;window.__wosvipFormulaJobs=new Map();
+    worker.onmessage=event=>{const data=event.data||{},job=window.__wosvipFormulaJobs.get(data.id);if(!job)return;if(data.type==='progress'){job.onProgress?.(Math.max(1,Math.min(99,Math.round(data.value||0))))}else if(data.type==='result'){window.__wosvipFormulaJobs.delete(data.id);job.resolve(data.text)}else if(data.type==='error'){window.__wosvipFormulaJobs.delete(data.id);job.reject(new Error(data.message||'Falha no leitor matemático'))}};
+    worker.onerror=()=>{for(const job of window.__wosvipFormulaJobs.values())job.reject(new Error('Falha ao carregar o leitor matemático'));window.__wosvipFormulaJobs.clear();window.__wosvipFormulaWorker=null}
+  }
+  const blob=await cameraImageBlob(image),id='formula-'+Date.now()+'-'+Math.random().toString(36).slice(2);
+  return new Promise((resolve,reject)=>{window.__wosvipFormulaJobs.set(id,{resolve,reject,onProgress});window.__wosvipFormulaWorker.postMessage({id,type:'recognize',image:blob})})
+}
 async function recognizeCameraMath(image,onProgress){
+  try{
+    onProgress?.(1);const latex=await recognizeFormulaModel(image,onProgress),formula=latexToCalculator(latex);
+    if(formula&&/[0-9x]/.test(formula)){onProgress?.(100);return formula}
+  }catch(error){console.warn('Leitor matemático principal indisponível; usando reserva.',error)}
   const worker=await loadCameraOcr(),prepared=await prepareCameraOcrImage(image);window.__wosvipOcrProgress=onProgress;
   try{
     const regions=cameraFractionRegions(prepared);
@@ -176,7 +213,7 @@ function openCalculatorCamera(){
   }
   async function processImage(image){
     stop();screen.classList.add('recognizing');
-    const body=screen.querySelector('.math-camera-body');body.innerHTML='<div class="math-camera-loading"><div class="math-camera-spinner"></div><strong>Reconhecendo a expressão…</strong><span>0%</span><small>Isso pode levar alguns segundos na primeira utilização.</small></div>';
+    const body=screen.querySelector('.math-camera-body');body.innerHTML='<div class="math-camera-loading"><div class="math-camera-spinner"></div><strong>Reconhecendo a expressão…</strong><span>0%</span><small>Na primeira utilização, o modelo matemático será baixado e salvo no aparelho.</small></div>';
     try{const value=await recognizeCameraMath(image,percent=>{const label=screen.querySelector('.math-camera-loading span');if(label)label.textContent=percent+'%'});showEditor(image,value,value?'Reconhecimento concluído. Corrija se necessário.':'Não consegui identificar tudo. Digite a fórmula no campo.')}catch(error){showEditor(image,'','O reconhecimento automático não ficou disponível. Digite a fórmula no campo.')}
   }
   screen.querySelector('.math-camera-gallery').onclick=()=>fileInput.click();

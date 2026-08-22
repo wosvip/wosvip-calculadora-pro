@@ -18,3 +18,8 @@ Abra o arquivo `index.html` no navegador ou acesse a versão publicada pelo GitH
 ## Tecnologias
 
 HTML5, CSS3 e JavaScript, sem dependências externas.
+
+
+## Reconhecimento matemático por imagem
+
+O reconhecimento especializado de fórmulas usa o modelo [FormulaNet](https://huggingface.co/alephpi/FormulaNet) por meio do Transformers.js, inspirado no projeto aberto [Texo](https://github.com/alephpi/Texo). O modelo é executado localmente no navegador após o primeiro download. Consulte as licenças dos projetos vinculados para os respectivos componentes.
