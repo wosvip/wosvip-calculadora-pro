@@ -146,6 +146,7 @@ function latexToCalculator(value){
   for(let guard=0;guard<8;guard++){const match=/\\sqrt\s*\{/.exec(text);if(!match)break;const start=match.index+match[0].lastIndexOf('{'),group=readLatexGroup(text,start);if(!group)break;text=text.slice(0,match.index)+'√('+latexToCalculator(group.value)+')'+text.slice(group.end)}
   text=text.replace(/\\(?:cdot|times)/g,'*').replace(/\\div/g,'/').replace(/\\(?:mathrm|text|operatorname)\s*\{([^{}]*)\}/g,'$1').replace(/\^\s*\{(-?\d+(?:\.\d+)?)\}/g,'^$1').replace(/\^\s*\{([^{}]+)\}/g,'^($1)').replace(/_\s*\{[^{}]*\}/g,'').replace(/[{}]/g,'').replace(/[×·]/g,'*').replace(/[—–−]/g,'-').replace(/\\,/g,'').replace(/\\[a-zA-Z]+/g,'').replace(/\s+/g,'').replace(/X/g,'x');
   text=text.replace(/\^\((-?\d+(?:\.\d+)?)\)/g,'^$1').replace(/(\d|x|\))(?=x|\()/g,'$1*').replace(/\)(?=\d)/g,')*').replace(/[^0-9x+\-*/().^√]/g,'');
+  const splitMinus=text.match(/^\(([^()]+)\)\/\(([^()]+)\)\*?\(([^()]+)\)\/\(([^()]+)\)$/);if(splitMinus)text='('+splitMinus[1]+'-'+splitMinus[3]+')/('+splitMinus[2]+'-'+splitMinus[4]+')';
   return text
 }
 async function cameraImageBlob(image){
@@ -327,7 +328,7 @@ function symbolicCalculationSteps(formula,result){
     if(numerator&&denominator){
       const denominatorTerms=[...denominator.entries()].filter(([,coefficient])=>Math.abs(coefficient)>1e-12),polynomialReduction=reducePolynomialFraction(numerator,denominator);
       if(polynomialReduction){
-        const numeratorFactored=factoredPolynomial(polynomialReduction,'numerator'),denominatorFactored=factoredPolynomial(polynomialReduction,'denominator'),common=factorPiece(polynomialReduction.common),restrictions=polynomialRoots(denominator);
+        const numeratorFactored=factoredPolynomial(polynomialReduction,'numerator'),denominatorFactored=factoredPolynomial(polynomialReduction,'denominator'),common=factorPiece(polynomialReduction.common),restrictions=[...new Set([...polynomialRoots(polynomialReduction.common),...polynomialRoots(polynomialReduction.denominator)].map(value=>+value.toPrecision(10)))].sort((a,b)=>a-b);
         steps.push({title:'Fatore o numerador e o denominador',html:stepMath('('+numeratorFactored+')/('+denominatorFactored+')')});
         steps.push({title:'Cancele o fator comum '+common,html:stepMath(result)+(restrictions.length?'<p class="calculation-domain">Restrições da expressão original: '+restrictions.map(value=>'x ≠ '+stepNumber(value)).join(' e ')+'</p>':'')});
         steps.push({title:'Resultado simplificado',html:stepMath(result)});return steps
