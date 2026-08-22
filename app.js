@@ -89,9 +89,58 @@ function openMathDialog(type){
     setComputedValue(result,isIntegral?'Integral':isDerivative?'Derivada':'Logaritmo',detail);overlay.remove();updateDisplay()
   }catch{$('#expression').textContent='Não foi possível calcular';}};
 }
+function normalizeCameraMath(raw){
+  let lines=String(raw||'').split(/\n+/).map(line=>line.trim()).filter(Boolean);
+  lines=lines.map(line=>line.replace(/[|_=]+$/g,'').trim()).filter(Boolean);
+  let text=lines.length===2?'('+lines[0]+')/('+lines[1]+')':lines.join('');
+  return text.replace(/[−–—]/g,'-').replace(/[×·]/g,'*').replace(/÷/g,'/').replace(/[{}[\]]/g,m=>m==='{'||m==='['?'(':')').replace(/√\s*([0-9A-Za-z.]+)/g,'√($1)').replace(/([0-9)])(?=√|\()/g,'$1*').replace(/([0-9)])([A-Za-z])/g,'$1*$2').replace(/²/g,'^2').replace(/³/g,'^3').replace(/\s+/g,'').replace(/[^0-9A-Za-zπ√∛+\-*/^().,%]/g,'');
+}
+function loadCameraOcr(){
+  if(window.Tesseract)return Promise.resolve(window.Tesseract);
+  if(window.__wosvipOcrPromise)return window.__wosvipOcrPromise;
+  window.__wosvipOcrPromise=new Promise((resolve,reject)=>{
+    const script=document.createElement('script');script.src='https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js';script.crossOrigin='anonymous';script.onload=()=>window.Tesseract?resolve(window.Tesseract):reject(new Error('OCR indisponível'));script.onerror=()=>reject(new Error('Não foi possível carregar o reconhecimento'));document.head.appendChild(script)
+  });
+  return window.__wosvipOcrPromise
+}
+async function recognizeCameraMath(image,onProgress){
+  const engine=await loadCameraOcr();
+  const result=await engine.recognize(image,'eng',{logger:message=>{if(onProgress&&message.status==='recognizing text')onProgress(Math.round((message.progress||0)*100))}});
+  return normalizeCameraMath(result.data&&result.data.text)
+}
 function openCalculatorCamera(){
-  const input=document.createElement('input');input.type='file';input.accept='image/*';input.setAttribute('capture','environment');
-  input.onchange=()=>{const file=input.files&&input.files[0];if(!file)return;const url=URL.createObjectURL(file),overlay=document.createElement('div');overlay.className='converter-overlay camera-overlay';overlay.innerHTML='<div class="converter-dialog"><h3>Imagem da expressão</h3><img class="camera-preview" alt="Expressão fotografada"><p class="camera-help">Imagem capturada. Use as teclas da calculadora para inserir a expressão conferindo a fotografia.</p><div class="converter-actions"><button class="converter-confirm" type="button">Fechar</button></div></div>';overlay.querySelector('img').src=url;overlay.querySelector('button').onclick=()=>{URL.revokeObjectURL(url);overlay.remove()};document.body.appendChild(overlay)};input.click()
+  document.querySelector('.math-camera-screen')?.remove();
+  const screen=document.createElement('div');screen.className='math-camera-screen';
+  screen.innerHTML='<header class="math-camera-header"><button class="math-camera-close" type="button" aria-label="Fechar">←</button><strong>Fotografe a expressão matemática</strong></header><main class="math-camera-body"><div class="math-camera-stage"><video autoplay playsinline muted></video><div class="math-camera-frame"></div><p>Centralize somente a fórmula dentro da moldura</p></div></main><footer class="math-camera-controls"><button class="math-camera-gallery" type="button">Imagem</button><button class="math-camera-shot" type="button" aria-label="Fotografar"></button><span></span></footer><input class="math-camera-file" type="file" accept="image/*" hidden>';
+  document.body.appendChild(screen);
+  const video=screen.querySelector('video'),fileInput=screen.querySelector('.math-camera-file');let stream=null;
+  const stop=()=>{if(stream)stream.getTracks().forEach(track=>track.stop());stream=null};
+  const close=()=>{stop();screen.remove()};
+  screen.querySelector('.math-camera-close').onclick=close;
+  function showEditor(image,recognized,message){
+    screen.innerHTML='<header class="math-camera-header"><button class="math-camera-close" type="button">←</button><strong>Revisar expressão</strong></header><main class="math-camera-review"><img alt="Expressão fotografada"><label>Expressão reconhecida<input class="math-camera-expression" autocomplete="off" spellcheck="false" placeholder="Digite ou corrija a fórmula"></label><p class="math-camera-message"></p><div class="math-camera-review-actions"><button class="math-camera-retry" type="button">Tentar novamente</button><button class="math-camera-insert" type="button">Inserir no visor</button></div></main>';
+    const preview=screen.querySelector('img');preview.src=typeof image==='string'?image:URL.createObjectURL(image);
+    const field=screen.querySelector('.math-camera-expression');field.value=recognized||'';
+    screen.querySelector('.math-camera-message').textContent=message||'Confira a fórmula antes de inserir.';
+    screen.querySelector('.math-camera-close').onclick=close;
+    screen.querySelector('.math-camera-retry').onclick=()=>{close();openCalculatorCamera()};
+    screen.querySelector('.math-camera-insert').onclick=()=>{const value=field.value.trim();if(!value){screen.querySelector('.math-camera-message').textContent='Digite ou reconheça uma expressão.';field.focus();return}expr=value;cursorPosition=expr.length;lastFormula='';resultShown=false;close();updateDisplay()};
+    field.focus()
+  }
+  async function processImage(image){
+    stop();screen.classList.add('recognizing');
+    const body=screen.querySelector('.math-camera-body');body.innerHTML='<div class="math-camera-loading"><div class="math-camera-spinner"></div><strong>Reconhecendo a expressão…</strong><span>0%</span><small>Isso pode levar alguns segundos na primeira utilização.</small></div>';
+    try{const value=await recognizeCameraMath(image,percent=>{const label=screen.querySelector('.math-camera-loading span');if(label)label.textContent=percent+'%'});showEditor(image,value,value?'Reconhecimento concluído. Corrija se necessário.':'Não consegui identificar tudo. Digite a fórmula no campo.')}catch(error){showEditor(image,'','O reconhecimento automático não ficou disponível. Digite a fórmula no campo.')}
+  }
+  screen.querySelector('.math-camera-gallery').onclick=()=>fileInput.click();
+  fileInput.onchange=()=>{const file=fileInput.files&&fileInput.files[0];if(file)processImage(file)};
+  screen.querySelector('.math-camera-shot').onclick=()=>{
+    if(!video.videoWidth){fileInput.click();return}
+    const source=document.createElement('canvas'),ctx=source.getContext('2d');source.width=video.videoWidth;source.height=video.videoHeight;ctx.drawImage(video,0,0);
+    const crop=document.createElement('canvas'),cw=Math.round(source.width*.88),ch=Math.round(source.height*.42),cx=Math.round((source.width-cw)/2),cy=Math.round((source.height-ch)/2);crop.width=cw;crop.height=ch;crop.getContext('2d').drawImage(source,cx,cy,cw,ch,0,0,cw,ch);crop.toBlob(blob=>{if(blob)processImage(blob)},'image/jpeg',.94)
+  };
+  if(navigator.mediaDevices&&navigator.mediaDevices.getUserMedia)navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'}},audio:false}).then(media=>{stream=media;video.srcObject=media}).catch(()=>{screen.querySelector('.math-camera-stage p').textContent='A câmera não foi liberada. Toque em Imagem para escolher uma foto.'});
+  else screen.querySelector('.math-camera-stage p').textContent='Toque em Imagem para escolher uma foto.'
 }
 function openQuickConverter(){
   let current=0;try{current=expr?safeEval(closeParentheses(expr)):0}catch{}
