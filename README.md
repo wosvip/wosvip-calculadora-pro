@@ -1,152 +1,207 @@
 # WOSVIP Calculadora PRO®
 
-Calculadora científica instalável para computador e smartphone, desenvolvida para cálculos numéricos, expressões algébricas, engenharia, estudos e conversões de unidades.
-
 <p align="center">
-  <a href="https://wosvip.github.io/wosvip-calculadora-pro/"><strong>ABRIR A CALCULADORA</strong></a>
+  <strong>Calculadora científica instalável com reconhecimento matemático por câmera e resolução passo a passo.</strong>
 </p>
 
-## Visão geral
+<p align="center">
+  <img alt="PWA" src="https://img.shields.io/badge/PWA-instalável-20c7aa">
+  <img alt="JavaScript" src="https://img.shields.io/badge/JavaScript-puro-f7df1e?logo=javascript&logoColor=111">
+  <img alt="Windows" src="https://img.shields.io/badge/Windows-compatível-0078d4?logo=windows11">
+  <img alt="Android" src="https://img.shields.io/badge/Android-compatível-3ddc84?logo=android&logoColor=111">
+  <img alt="GitHub Pages" src="https://img.shields.io/badge/GitHub%20Pages-online-222?logo=github">
+</p>
 
-A WOSVIP Calculadora PRO combina o visual de uma calculadora científica física com recursos modernos de navegador. A expressão aparece formatada no visor enquanto é digitada, e o resultado é atualizado automaticamente sempre que o cálculo já pode ser resolvido.
+<p align="center">
+  <a href="https://wosvip.github.io/wosvip-calculadora-pro/"><strong>ABRIR A WOSVIP CALCULADORA PRO</strong></a>
+</p>
 
-O projeto funciona como **Progressive Web App (PWA)**: pode ser instalado pelo Chrome ou Edge e aberto em uma janela própria, com ícone na tela inicial ou no menu de aplicativos.
+## Sobre o projeto
 
-## Capturas validadas
+A **WOSVIP Calculadora PRO** combina a aparência de uma calculadora científica física com recursos modernos para matemática, engenharia e estudos. O projeto funciona diretamente no navegador e também pode ser instalado como aplicativo no Windows e no Android.
+
+A expressão é formatada no visor, o resultado numérico aparece instantaneamente quando possível e a seta **▼** abre uma explicação matemática organizada. A câmera permite fotografar fórmulas, revisar o reconhecimento e enviar a expressão para o visor.
+
+## Aplicativo validado
+
+O enquadramento e a instalação foram testados como PWA no **Windows** e no **Moto G77**.
 
 <table>
   <tr>
-    <td align="center"><strong>Reconhecimento da fórmula</strong></td>
-    <td align="center"><strong>Resultado simbólico</strong></td>
-    <td align="center"><strong>Acesso ao passo a passo</strong></td>
+    <td align="center"><strong>Aplicativo no Moto G77</strong></td>
+    <td align="center"><strong>Aplicativo instalado no Windows</strong></td>
   </tr>
   <tr>
-    <td><img src="docs/images/reconhecimento-formula.png" width="260" alt="Fórmula reconhecida pela câmera"></td>
-    <td><img src="docs/images/resultado-simbolico.png" width="260" alt="Expressão algébrica e resultado no visor"></td>
-    <td><img src="docs/images/seta-passo-a-passo.png" width="260" alt="Seta para abrir a resolução passo a passo"></td>
+    <td align="center"><img src="docs/images/app-motog77.png" width="310" alt="WOSVIP Calculadora PRO instalada no Moto G77"></td>
+    <td align="center"><img src="docs/images/app-windows.png" width="430" alt="WOSVIP Calculadora PRO instalada no Windows"></td>
   </tr>
 </table>
 
-## Principais recursos
+## Recursos principais
 
 ### Calculadora científica
 
 - Operações básicas, porcentagem e troca de sinal
-- Potências, raiz quadrada, raiz cúbica e raiz de índice variável
-- Seno, cosseno, tangente e funções inversas
-- Modos angular **DEG** e **RAD**
-- Logaritmo decimal, logaritmo natural, exponencial e constante π
+- Potências e raízes quadrada, cúbica e de índice variável
+- Seno, cosseno, tangente e funções trigonométricas inversas
+- Modos angulares **DEG** e **RAD**
+- Logaritmo decimal, logaritmo natural, exponenciais e constante π
 - Fatorial, combinações, permutações e módulo
-- Parênteses e edição da expressão com setas
-- Números complexos, memória e histórico persistente
+- Parênteses e edição da expressão pelas setas direcionais
+- Memória, resposta anterior e histórico persistente
+- Números complexos e conversões entre bases numéricas
 
-### Cálculo instantâneo
+### Resultado instantâneo e tecla igual
 
-O resultado aparece automaticamente enquanto a expressão é digitada. A tecla **=** confirma o resultado, permitindo continuar o cálculo a partir da resposta anterior.
+O resultado aparece enquanto a expressão é digitada. A tecla **=** confirma a resposta e permite continuar o cálculo usando o resultado anterior.
 
-Exemplo:
+Exemplo: `32 × 2` mostra `64`; depois de confirmar, é possível continuar com `× 2` para obter `128`.
 
-```text
-32 × 2 = 64
-64 × 2 = 128
-```
+### Tecla SOBRE
 
-### Resolução passo a passo
+A tecla **SOBRE** abre, dentro da própria calculadora, uma apresentação completa do aplicativo. O card reúne os recursos científicos, o funcionamento da câmera, a instalação, o modo offline, a privacidade, as tecnologias e as observações de precisão sem retirar o usuário do cálculo.
 
-A seta **▼**, posicionada abaixo do resultado, abre um card explicativo. De acordo com a expressão, ele apresenta:
+### Resolução matemática passo a passo
 
-1. Expressão original
-2. Resolução de parênteses
-3. Potências, raízes ou funções científicas
-4. Multiplicações e divisões
-5. Adições e subtrações
-6. Redução de coeficientes e expoentes em expressões algébricas
-7. Resultado final
+A seta **▼** abre uma tela de resolução com fundo escuro, fórmulas em destaque e divisórias discretas. Dependendo do cálculo, o aplicativo apresenta:
 
-Exemplo de simplificação simbólica:
+- ordem das operações;
+- transformação de raízes em potências;
+- simplificação de frações algébricas;
+- fatoração e cancelamento de fatores comuns;
+- restrições da expressão original;
+- equações do primeiro grau;
+- fórmula de Bhaskara e equações do segundo grau;
+- raízes reais ou complexas.
 
-```text
-(6x² − 9x) / 15x
-= 6x²/15x − 9x/15x
-= 0,4x − 0,6
-```
+<p align="center">
+  <img src="docs/images/passo-a-passo-basico.png" width="420" alt="Resolução passo a passo de uma multiplicação">
+</p>
 
-### Reconhecimento matemático pela câmera
+## Reconhecimento matemático pela câmera
 
-A tecla com o ícone de câmera permite:
+A tecla de câmera abre um fluxo próprio para captura de expressões:
 
-1. Fotografar uma expressão matemática
-2. Ajustar a área de captura
-3. Reconhecer números, operadores, frações, expoentes e variáveis
-4. Revisar e corrigir o conteúdo identificado
-5. Inserir a expressão formatada diretamente no visor
+1. Abra a câmera ou selecione uma imagem.
+2. Ajuste o enquadramento da fórmula.
+3. Aguarde o reconhecimento matemático.
+4. Revise e, se necessário, edite a expressão reconhecida.
+5. Toque em **Inserir no visor**.
+6. Use a seta **▼** para consultar a resolução.
 
-O reconhecimento especializado usa o modelo [FormulaNet](https://huggingface.co/alephpi/FormulaNet) por meio do [Transformers.js](https://huggingface.co/docs/transformers.js/), inspirado no projeto aberto [Texo](https://github.com/alephpi/Texo).
+O campo de revisão é importante para remover numeração de exercícios ou corrigir algum caractere antes de calcular.
 
-> Na primeira utilização da câmera, é necessária conexão com a internet para baixar o modelo matemático. Depois do download, o navegador mantém o modelo armazenado em cache.
+### Expressões algébricas com duas variáveis
 
-### Ferramentas adicionais
+O leitor e o motor simbólico aceitam `x`, `y`, produtos como `2xy`, potências e frações algébricas.
+
+<table>
+  <tr>
+    <td align="center"><strong>Expressão reconhecida</strong></td>
+    <td align="center"><strong>Simplificação simbólica</strong></td>
+  </tr>
+  <tr>
+    <td align="center"><img src="docs/images/ocr-multivariavel.png" width="320" alt="Reconhecimento de expressão algébrica com x e y"></td>
+    <td align="center"><img src="docs/images/resolucao-multivariavel.png" width="430" alt="Resolução simbólica de expressão com duas variáveis"></td>
+  </tr>
+</table>
+
+### Equações do primeiro e segundo graus
+
+O aplicativo identifica os coeficientes, resolve a equação e apresenta as transformações matemáticas.
+
+<table>
+  <tr>
+    <td align="center"><strong>Leitura e revisão</strong></td>
+    <td align="center"><strong>Equação do primeiro grau</strong></td>
+    <td align="center"><strong>Equação do segundo grau</strong></td>
+  </tr>
+  <tr>
+    <td align="center"><img src="docs/images/ocr-primeiro-grau.png" width="250" alt="Reconhecimento de uma equação do primeiro grau"></td>
+    <td align="center"><img src="docs/images/resolucao-primeiro-grau.png" width="300" alt="Resolução passo a passo de equação do primeiro grau"></td>
+    <td align="center"><img src="docs/images/resolucao-segundo-grau.png" width="300" alt="Resolução de equação do segundo grau pela fórmula de Bhaskara"></td>
+  </tr>
+</table>
+
+## Outras ferramentas
 
 - Integral definida e derivada numérica
 - Limites, somatórios e produtórios
-- Conversor de unidades com categorias de engenharia
+- Conversor de unidades para engenharia
 - Juros simples e compostos
-- Cálculo de parcelas de financiamento
-- Gráfico de funções matemáticas
+- Parcelas de financiamento
+- Gráficos de funções
 - Conversões binárias, octais, decimais e hexadecimais
-- Memória de resultados e histórico local
+- Estatística, memória e histórico local
 
-## Instalação no smartphone
+## Instalação
 
-1. Abra [a versão publicada](https://wosvip.github.io/wosvip-calculadora-pro/) no Chrome.
-2. Toque no botão **Instalar** ou abra o menu do navegador.
+### Android
+
+1. Abra a [versão publicada](https://wosvip.github.io/wosvip-calculadora-pro/) no Chrome.
+2. Toque em **Instalar** ou abra o menu do navegador.
 3. Escolha **Instalar aplicativo**.
-4. Confirme a instalação.
-5. Abra a WOSVIP Calculadora PRO pelo ícone criado no aparelho.
+4. Confirme e abra pelo ícone criado na tela inicial.
 
-## Instalação no computador
+### Windows
 
-1. Abra [a calculadora](https://wosvip.github.io/wosvip-calculadora-pro/) no Chrome ou Edge.
-2. Clique no ícone de instalação localizado na barra de endereço ou use o menu do navegador.
+1. Abra a [calculadora](https://wosvip.github.io/wosvip-calculadora-pro/) no Chrome ou Edge.
+2. Clique no ícone de instalação da barra de endereço ou abra o menu.
 3. Selecione **Instalar WOSVIP Calculadora PRO**.
-4. O aplicativo será aberto em uma janela própria.
+4. O aplicativo será aberto em uma janela própria, sem a barra do navegador.
 
-## Funcionamento offline
+## Funcionamento online e offline
 
-Depois da primeira abertura, a interface e as funções principais são armazenadas pelo service worker. Assim, a calculadora pode continuar funcionando sem conexão. O reconhecimento por imagem também poderá reutilizar o modelo quando ele já estiver presente no cache do navegador.
+Depois da primeira abertura, a interface e o motor principal ficam armazenados pelo service worker. Operações numéricas, trigonometria, raízes, equações e várias ferramentas continuam disponíveis localmente.
+
+O reconhecimento por câmera necessita de internet na primeira utilização para baixar o modelo matemático. Após o download, o navegador poderá reutilizar os arquivos armazenados em cache. A disponibilidade depende das regras de armazenamento do navegador e do dispositivo.
 
 ## Privacidade
 
-- Os cálculos são processados no próprio dispositivo.
-- Histórico, memória e preferências ficam armazenados localmente no navegador.
-- A imagem capturada pela câmera é processada pelo modelo executado no navegador.
-- O aplicativo não exige criação de conta.
+- Não é necessário criar conta.
+- Cálculos, memória, histórico e preferências ficam no dispositivo.
+- A imagem é processada pelo mecanismo executado no navegador.
+- O usuário sempre revisa a expressão antes de enviá-la ao visor.
 
 ## Tecnologias
 
-- HTML5
-- CSS3
-- JavaScript
-- Canvas
-- Service Worker e Web App Manifest
-- Transformers.js e ONNX Runtime Web para reconhecimento matemático
-- GitHub Pages para publicação
+- HTML5, CSS3 e JavaScript puro
+- Progressive Web App, Web App Manifest e Service Worker
+- Canvas e APIs de câmera do navegador
+- Transformers.js e ONNX Runtime Web
+- FormulaNet para reconhecimento de expressões matemáticas
+- Pyodide e SymPy para transformações simbólicas avançadas
+- GitHub Pages para hospedagem
 
-## Estrutura principal
+## Estrutura do projeto
 
-```text
-index.html             Interface
-styles.css             Visual e responsividade
-app.js                 Motor da calculadora
-formula-ocr-worker.js  Reconhecimento matemático
-manifest.json          Configuração de instalação
-sw.js                  Cache e funcionamento offline
-```
+| Arquivo | Responsabilidade |
+|---|---|
+| `index.html` | Estrutura da interface |
+| `styles.css` | Visual, responsividade e modo instalado |
+| `app.js` | Teclas, cálculos, câmera e resolução local |
+| `advanced-math-engine.js` | Comunicação com o motor simbólico |
+| `advanced-math-worker.js` | Execução isolada do SymPy |
+| `formula-ocr-worker.js` | Reconhecimento matemático em segundo plano |
+| `manifest.json` | Nome, ícones e configuração do PWA |
+| `sw.js` | Cache, atualização e funcionamento offline |
 
-## Compatibilidade
+## Compatibilidade validada
 
-O aplicativo foi projetado para navegadores modernos baseados em Chromium, incluindo Chrome e Edge, em Android e Windows. Funções de câmera dependem da permissão concedida pelo usuário e da disponibilidade do navegador.
+| Plataforma | Navegadores | Situação |
+|---|---|---|
+| Android / Moto G77 | Chrome | Instalado e enquadrado em tela cheia |
+| Windows | Chrome e Edge | Instalado em janela própria |
+
+Outros navegadores modernos podem funcionar, mas a instalação, a câmera e o armazenamento do modelo dependem do suporte oferecido por cada navegador.
+
+## Observações sobre precisão
+
+O reconhecimento por imagem pode interpretar incorretamente caracteres muito pequenos, reflexos, baixa iluminação ou numeração impressa antes do exercício. Por isso, a tela de revisão permite corrigir a expressão antes do cálculo. Para resultados importantes, confira a fórmula reconhecida e as restrições matemáticas apresentadas.
 
 ---
 
-<p align="center"><strong>WOSVIP Calculadora PRO</strong><br>Ciência, engenharia e produtividade em uma calculadora instalável.</p>
+<p align="center">
+  <strong>WOSVIP Calculadora PRO®</strong><br>
+  Ciência, engenharia e produtividade em uma calculadora instalável.
+</p>

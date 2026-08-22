@@ -7,7 +7,7 @@ function updateAngleMode(){const deg=angleMode==='DEG';$('#degBtn').classList.to
 $('#degBtn').onclick=()=>{angleMode='DEG';localStorage.setItem('wosvipAngleMode',angleMode);updateAngleMode()};$('#radBtn').onclick=()=>{angleMode='RAD';localStorage.setItem('wosvipAngleMode',angleMode);updateAngleMode()};updateAngleMode();
 let shiftActive=false;
 function setShift(active){shiftActive=active;document.querySelector('.shift-key').classList.toggle('active',active);document.querySelectorAll('[data-secondary-action]').forEach(b=>{b.textContent=active?b.dataset.secondaryLabel:b.dataset.primaryLabel})}
-const controlButtons=[['SHIFT','shift'],['MENU','noop'],['◀','cursorLeft'],['▶','cursorRight'],['⌫','back'],['AC','clear']];
+const controlButtons=[['SHIFT','shift'],['SOBRE','about'],['◀','cursorLeft'],['▶','cursorRight'],['⌫','back'],['AC','clear']];
 const scientificButtons=[
  ['DRG','mode','→DRG','mode'],['x↔E','sci','FSE','sci'],['▦','noop','MTRX','noop'],['Σ','summation','Π','product'],['∫dx','integral','d/dx','derivative'],['▣','camera','','noop'],
  ['π','pi','hyp','noop'],['sin','sin','sin⁻¹','asin'],['cos','cos','cos⁻¹','acos'],['tan','tan','tan⁻¹','atan'],['i','imaginary','∠','complexAngle'],['logₓy','logBase','logₓy','logBase'],
@@ -264,7 +264,65 @@ function openQuickConverter(){
   }
   showCategories()
 }
-function press(k){if(structuredEntry&&k!=='shift')return handleStructuredPress(k);const confirmedResult=resultShown;if(confirmedResult&&/^[0-9.]$/.test(k)){expr='';cursorPosition=0;lastFormula=''}if(k!=='equal'&&k!=='shift'&&k!=='cursorLeft'&&k!=='cursorRight')resultShown=false;if(k==='shift'){setShift(!shiftActive);return}if(k==='cursorLeft'){cursorPosition=Math.max(0,cursorPosition-1);updateDisplay();return}else if(k==='cursorRight'){cursorPosition=Math.min(expr.length,cursorPosition+1);updateDisplay();return}else if(k==='clear'){expr='';lastFormula='';cursorPosition=0;}else if(k==='back'){if(cursorPosition>0){expr=expr.slice(0,cursorPosition-1)+expr.slice(cursorPosition);cursorPosition--}}else if(k==='equal')calculate();else if(k==='neg'){expr=expr?`-(${expr})`:'-';cursorPosition=expr.length;}else if(k==='mode'){angleMode=angleMode==='DEG'?'RAD':'DEG';localStorage.setItem('wosvipAngleMode',angleMode);updateAngleMode()}else if(k==='limit'){startStructuredEntry('limit');return}else if(k==='yroot'){startStructuredEntry('yroot');return}else if(k==='fraction'){try{expr=approximateFraction(safeEval(closeParentheses(expr)))}catch{$('#expression').textContent='Não foi possível converter'}}else if(k==='sci'){try{expr=safeEval(closeParentheses(expr)).toExponential(10)}catch{$('#expression').textContent='Expressão inválida'}}else if(k==='dms'){try{const v=safeEval(closeParentheses(expr)),d=Math.trunc(v),m=Math.trunc(Math.abs(v-d)*60),s=(Math.abs(v-d)*60-m)*60;lastFormula=expr;expr=`${d}°${m}′${+s.toPrecision(8)}″`;addHistory('DMS',lastFormula,expr)}catch{$('#expression').textContent='Expressão inválida'}}else if(k==='stats'){try{const values=expr.split(',').map(v=>safeEval(closeParentheses(v.trim()))).filter(Number.isFinite);if(!values.length)throw Error();const mean=values.reduce((a,b)=>a+b,0)/values.length;lastFormula=`Média de ${values.join(', ')}`;expr=String(+mean.toPrecision(12));addHistory('Estatística',lastFormula,expr)}catch{$('#expression').textContent='Digite valores separados por vírgula'}}else if(k==='variables'){const before=expr[cursorPosition-1];if(before==='X')expr=expr.slice(0,cursorPosition-1)+'Y'+expr.slice(cursorPosition);else if(before==='Y')expr=expr.slice(0,cursorPosition-1)+'M'+expr.slice(cursorPosition);else insertAtCursor('X')}else if(k==='memoryRecall'){insertAtCursor(String(memoryValue));$('#expression').textContent=`MR = ${memoryValue}`}else if(k==='memoryStore'){try{memoryValue=safeEval(closeParentheses(expr));localStorage.setItem('wosvipMemory',String(memoryValue));$('#expression').textContent=`M = ${memoryValue}`}catch{$('#expression').textContent='Nada válido para armazenar'}}else if(k==='memoryAdd'||k==='memorySubtract'){try{const value=safeEval(closeParentheses(expr));memoryValue+=k==='memoryAdd'?value:-value;localStorage.setItem('wosvipMemory',String(memoryValue));$('#expression').textContent=`M = ${memoryValue}`}catch{$('#expression').textContent='Expressão inválida'}}else if(k==='showHistory'){const lines=history.slice(0,10).map((h,i)=>`${i+1}. ${h.detail} = ${h.result}`);alert(lines.length?lines.join('\n'):'Histórico vazio')}
+
+function showAboutApp(){
+  document.querySelector('.about-app-overlay')?.remove();
+  const overlay=document.createElement('div');overlay.className='about-app-overlay';
+  overlay.innerHTML=`
+    <section class="about-app-card" role="dialog" aria-modal="true" aria-labelledby="aboutAppTitle">
+      <header class="about-app-header">
+        <div><span>WOSVIP</span><h2 id="aboutAppTitle">Sobre o aplicativo</h2></div>
+        <button type="button" aria-label="Fechar sobre o aplicativo">×</button>
+      </header>
+      <div class="about-app-content">
+        <section class="about-app-hero">
+          <strong>WOSVIP Calculadora PRO®</strong>
+          <p>Calculadora científica instalável com reconhecimento matemático por câmera e resolução passo a passo.</p>
+          <a href="https://wosvip.github.io/wosvip-calculadora-pro/" target="_blank" rel="noopener">Versão oficial publicada</a>
+        </section>
+        <section><h3>Sobre o projeto</h3><p>A WOSVIP Calculadora PRO combina o visual de uma calculadora científica física com recursos modernos para matemática, engenharia e estudos. Funciona no navegador e pode ser instalada como aplicativo no Windows e no Android.</p></section>
+        <section><h3>Recursos científicos</h3><ul>
+          <li>Operações básicas, porcentagem, parênteses e troca de sinal.</li>
+          <li>Potências, raízes quadrada, cúbica e de índice variável.</li>
+          <li>Seno, cosseno, tangente e funções inversas em DEG ou RAD.</li>
+          <li>Logaritmos, exponenciais, fatorial, combinações e permutações.</li>
+          <li>Memória, resposta anterior, histórico e números complexos.</li>
+          <li>Integral definida, derivada numérica, limite, somatório e produtório.</li>
+        </ul></section>
+        <section><h3>Resultado instantâneo</h3><p>O resultado aparece enquanto a expressão é digitada. A tecla <b>=</b> confirma a resposta para que o próximo cálculo possa continuar usando o valor anterior.</p></section>
+        <section><h3>Resolução matemática</h3><p>A seta <b>▼</b> abre a explicação passo a passo. O aplicativo resolve operações numéricas, frações algébricas, raízes e equações do primeiro e do segundo graus, apresentando também restrições quando necessário.</p></section>
+        <section><h3>Câmera e reconhecimento de fórmulas</h3><ol>
+          <li>Abra a câmera ou escolha uma imagem.</li>
+          <li>Ajuste o enquadramento da expressão.</li>
+          <li>Revise o texto matemático reconhecido.</li>
+          <li>Corrija caracteres ou remova a numeração do exercício, se necessário.</li>
+          <li>Toque em <b>Inserir no visor</b> e consulte a resolução.</li>
+        </ol></section>
+        <section><h3>Ferramentas adicionais</h3><p>Conversor de unidades, bases binária, octal, decimal e hexadecimal, estatística, juros, financiamentos, gráficos, constantes, memória e histórico local.</p></section>
+        <section><h3>Instalação</h3><p>No Android, abra pelo Chrome e escolha <b>Instalar aplicativo</b>. No Windows, use o ícone de instalação do Chrome ou Edge. Instalado, o aplicativo abre em janela própria e com a calculadora enquadrada na tela.</p></section>
+        <section><h3>Online e offline</h3><p>Depois da primeira abertura, a interface e o motor principal ficam armazenados no dispositivo. O reconhecimento pela câmera requer internet na primeira utilização para baixar o modelo; depois, o navegador poderá reutilizar os arquivos em cache.</p></section>
+        <section><h3>Privacidade</h3><ul>
+          <li>Não exige conta ou cadastro.</li>
+          <li>Cálculos, memória, histórico e preferências ficam no dispositivo.</li>
+          <li>A imagem é processada pelo mecanismo executado no navegador.</li>
+          <li>A expressão sempre pode ser revisada antes do cálculo.</li>
+        </ul></section>
+        <section><h3>Tecnologias</h3><p>HTML5, CSS3, JavaScript, PWA, Service Worker, Canvas, APIs de câmera, Transformers.js, ONNX Runtime Web, FormulaNet, Pyodide e SymPy.</p></section>
+        <section><h3>Compatibilidade validada</h3><p>Testada como aplicativo instalado no Moto G77 com Chrome e no Windows com Chrome e Edge.</p></section>
+        <section><h3>Precisão</h3><p>Imagens com caracteres pequenos, reflexos ou pouca iluminação podem exigir correção manual. Confira sempre a expressão reconhecida antes de confirmar resultados importantes.</p></section>
+      </div>
+      <footer><button type="button">Fechar</button></footer>
+    </section>`;
+  document.body.appendChild(overlay);
+  const close=()=>overlay.remove();
+  overlay.querySelector('.about-app-header button').onclick=close;
+  overlay.querySelector('footer button').onclick=close;
+  overlay.onclick=event=>{if(event.target===overlay)close()};
+  const escape=event=>{if(event.key==='Escape'){close();document.removeEventListener('keydown',escape)}};
+  document.addEventListener('keydown',escape);
+}
+
+function press(k){if(structuredEntry&&k!=='shift')return handleStructuredPress(k);const confirmedResult=resultShown;if(confirmedResult&&/^[0-9.]$/.test(k)){expr='';cursorPosition=0;lastFormula=''}if(k!=='equal'&&k!=='shift'&&k!=='cursorLeft'&&k!=='cursorRight')resultShown=false;if(k==='shift'){setShift(!shiftActive);return}if(k==='about'){showAboutApp();return}if(k==='cursorLeft'){cursorPosition=Math.max(0,cursorPosition-1);updateDisplay();return}else if(k==='cursorRight'){cursorPosition=Math.min(expr.length,cursorPosition+1);updateDisplay();return}else if(k==='clear'){expr='';lastFormula='';cursorPosition=0;}else if(k==='back'){if(cursorPosition>0){expr=expr.slice(0,cursorPosition-1)+expr.slice(cursorPosition);cursorPosition--}}else if(k==='equal')calculate();else if(k==='neg'){expr=expr?`-(${expr})`:'-';cursorPosition=expr.length;}else if(k==='mode'){angleMode=angleMode==='DEG'?'RAD':'DEG';localStorage.setItem('wosvipAngleMode',angleMode);updateAngleMode()}else if(k==='limit'){startStructuredEntry('limit');return}else if(k==='yroot'){startStructuredEntry('yroot');return}else if(k==='fraction'){try{expr=approximateFraction(safeEval(closeParentheses(expr)))}catch{$('#expression').textContent='Não foi possível converter'}}else if(k==='sci'){try{expr=safeEval(closeParentheses(expr)).toExponential(10)}catch{$('#expression').textContent='Expressão inválida'}}else if(k==='dms'){try{const v=safeEval(closeParentheses(expr)),d=Math.trunc(v),m=Math.trunc(Math.abs(v-d)*60),s=(Math.abs(v-d)*60-m)*60;lastFormula=expr;expr=`${d}°${m}′${+s.toPrecision(8)}″`;addHistory('DMS',lastFormula,expr)}catch{$('#expression').textContent='Expressão inválida'}}else if(k==='stats'){try{const values=expr.split(',').map(v=>safeEval(closeParentheses(v.trim()))).filter(Number.isFinite);if(!values.length)throw Error();const mean=values.reduce((a,b)=>a+b,0)/values.length;lastFormula=`Média de ${values.join(', ')}`;expr=String(+mean.toPrecision(12));addHistory('Estatística',lastFormula,expr)}catch{$('#expression').textContent='Digite valores separados por vírgula'}}else if(k==='variables'){const before=expr[cursorPosition-1];if(before==='X')expr=expr.slice(0,cursorPosition-1)+'Y'+expr.slice(cursorPosition);else if(before==='Y')expr=expr.slice(0,cursorPosition-1)+'M'+expr.slice(cursorPosition);else insertAtCursor('X')}else if(k==='memoryRecall'){insertAtCursor(String(memoryValue));$('#expression').textContent=`MR = ${memoryValue}`}else if(k==='memoryStore'){try{memoryValue=safeEval(closeParentheses(expr));localStorage.setItem('wosvipMemory',String(memoryValue));$('#expression').textContent=`M = ${memoryValue}`}catch{$('#expression').textContent='Nada válido para armazenar'}}else if(k==='memoryAdd'||k==='memorySubtract'){try{const value=safeEval(closeParentheses(expr));memoryValue+=k==='memoryAdd'?value:-value;localStorage.setItem('wosvipMemory',String(memoryValue));$('#expression').textContent=`M = ${memoryValue}`}catch{$('#expression').textContent='Expressão inválida'}}else if(k==='showHistory'){const lines=history.slice(0,10).map((h,i)=>`${i+1}. ${h.detail} = ${h.result}`);alert(lines.length?lines.join('\n'):'Histórico vazio')}
 else if(k==='integral'||k==='derivative'||k==='summation'||k==='product'){startStructuredEntry(k);return}
 else if(k==='logBase'){openMathDialog('logBase');return}
 else if(k==='camera'){openCalculatorCamera();return}
@@ -484,5 +542,5 @@ updateInstallButton();
 if('serviceWorker'in navigator){
   let serviceWorkerRefreshing=false;
   navigator.serviceWorker.addEventListener('controllerchange',()=>{if(serviceWorkerRefreshing)return;serviceWorkerRefreshing=true;if(!sessionStorage.getItem('wosvip-sw-reloaded')){sessionStorage.setItem('wosvip-sw-reloaded','1');location.reload()}});
-  window.addEventListener('load',async()=>{try{const registration=await navigator.serviceWorker.register('./sw.js?v=35',{updateViaCache:'none'});await registration.update();if(registration.waiting)registration.waiting.postMessage({type:'SKIP_WAITING'});setTimeout(()=>sessionStorage.removeItem('wosvip-sw-reloaded'),8000)}catch{}});
+  window.addEventListener('load',async()=>{try{const registration=await navigator.serviceWorker.register('./sw.js?v=36',{updateViaCache:'none'});await registration.update();if(registration.waiting)registration.waiting.postMessage({type:'SKIP_WAITING'});setTimeout(()=>sessionStorage.removeItem('wosvip-sw-reloaded'),8000)}catch{}});
 }
