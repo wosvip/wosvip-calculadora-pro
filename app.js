@@ -144,7 +144,7 @@ function expandLatexFractions(value){
 }
 function latexToCalculator(value){
   let text=expandLatexFractions(String(value||'').replace(/\\left|\\right/g,''));
-  text=text.replace(/^\s*\d+\.\s+(?=(?:\d+\s*)?[xXyY])/,'');
+  text=text.replace(/^\s*\d+\s*\.(?:\s+|(?:\s*(?:\\(?:quad|qquad|,|;|!)|~)\s*)+)(?=(?:\d+\s*)?[xXyY])/,'');
   for(let guard=0;guard<8;guard++){const match=/\\sqrt\s*\{/.exec(text);if(!match)break;const start=match.index+match[0].lastIndexOf('{'),group=readLatexGroup(text,start);if(!group)break;text=text.slice(0,match.index)+'√('+latexToCalculator(group.value)+')'+text.slice(group.end)}
   text=text.replace(/\\(?:cdot|times)/g,'*').replace(/\\div/g,'/').replace(/\\(?:mathrm|text|operatorname)\s*\{([^{}]*)\}/g,'$1').replace(/\^\s*\{(-?\d+(?:\.\d+)?)\}/g,'^$1').replace(/\^\s*\{([^{}]+)\}/g,'^($1)').replace(/_\s*\{[^{}]*\}/g,'').replace(/[{}]/g,'').replace(/[×·]/g,'*').replace(/[—–−]/g,'-').replace(/\\,/g,'').replace(/\\[a-zA-Z]+/g,'').replace(/\s+/g,'').replace(/X/g,'x').replace(/Y/g,'y');
   text=text.replace(/\^\((-?\d+(?:\.\d+)?)\)/g,'^$1').replace(/(\d|x|y|\))(?=x|y|\()/g,'$1*').replace(/\)(?=\d)/g,')*').replace(/[^0-9xy+\-*/().^√=]/g,'').replace(/\.$/,'');
