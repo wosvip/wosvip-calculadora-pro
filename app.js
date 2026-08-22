@@ -116,9 +116,32 @@ async function loadCameraOcr(){
   })();
   return window.__wosvipOcrWorkerPromise
 }
+function cameraFractionRegions(canvas){
+  const context=canvas.getContext('2d',{willReadFrequently:true}),width=canvas.width,height=canvas.height,data=context.getImageData(0,0,width,height).data,rows=[];
+  for(let y=Math.round(height*.18);y<Math.round(height*.82);y++){let dark=0,minX=width,maxX=-1;for(let x=0;x<width;x++){const i=(y*width+x)*4,luma=(data[i]*299+data[i+1]*587+data[i+2]*114)/1000;if(luma<105){dark++;if(x<minX)minX=x;if(x>maxX)maxX=x}}rows.push({y,dark,minX,maxX,span:maxX>=minX?maxX-minX+1:0})}
+  rows.sort((a,b)=>b.span-a.span||b.dark-a.dark);const bar=rows[0];if(!bar||bar.span<width*.32||bar.dark<width*.24)return null;
+  let top=bar.y,bottom=bar.y;while(top>1&&rows.some(r=>r.y===top-1&&r.span>width*.25))top--;while(bottom<height-2&&rows.some(r=>r.y===bottom+1&&r.span>width*.25))bottom++;
+  const padX=Math.max(8,Math.round(bar.span*.08)),left=Math.max(0,bar.minX-padX),right=Math.min(width,bar.maxX+padX),upperTop=Math.max(0,Math.round(height*.04)),lowerBottom=Math.min(height,Math.round(height*.96));
+  if(top-upperTop<height*.08||lowerBottom-bottom<height*.08)return null;
+  return {numerator:{x:left,y:upperTop,width:right-left,height:top-upperTop},denominator:{x:left,y:bottom+1,width:right-left,height:lowerBottom-bottom-1}}
+}
+function cameraCropCanvas(source,box){
+  const canvas=document.createElement('canvas'),scale=1.35;canvas.width=Math.max(1,Math.round(box.width*scale));canvas.height=Math.max(1,Math.round(box.height*scale));const context=canvas.getContext('2d');context.fillStyle='#fff';context.fillRect(0,0,canvas.width,canvas.height);context.imageSmoothingEnabled=true;context.imageSmoothingQuality='high';context.drawImage(source,box.x,box.y,box.width,box.height,0,0,canvas.width,canvas.height);return canvas
+}
+function cleanCameraFractionPart(value){
+  return String(value||'').replace(/[|_]/g,'').replace(/[×·]/g,'*').replace(/[—–−]/g,'-').replace(/\s+/g,'').replace(/([0-9)])X/gi,'$1x').replace(/X(?=[0-9(])/g,'x').replace(/[?]/g,'^2').replace(/²/g,'^2').replace(/³/g,'^3').replace(/[^0-9xX+\-*/().^√]/g,'')
+}
 async function recognizeCameraMath(image,onProgress){
   const worker=await loadCameraOcr(),prepared=await prepareCameraOcrImage(image);window.__wosvipOcrProgress=onProgress;
   try{
+    const regions=cameraFractionRegions(prepared);
+    if(regions){
+      await worker.setParameters({tessedit_pageseg_mode:'7',tessedit_char_whitelist:'0123456789xX+-*/()^√.²³',preserve_interword_spaces:'1'});
+      window.__wosvipOcrPhase=0;window.__wosvipOcrRange=42;const numeratorResult=await worker.recognize(cameraCropCanvas(prepared,regions.numerator));
+      window.__wosvipOcrPhase=45;window.__wosvipOcrRange=42;const denominatorResult=await worker.recognize(cameraCropCanvas(prepared,regions.denominator));
+      const numerator=cleanCameraFractionPart(numeratorResult.data&&numeratorResult.data.text),denominator=cleanCameraFractionPart(denominatorResult.data&&denominatorResult.data.text);
+      if(numerator&&denominator&&/[0-9xX]/.test(numerator)&&/[0-9xX]/.test(denominator)){onProgress?.(100);return '('+numerator+')/('+denominator+')'}
+    }
     window.__wosvipOcrPhase=0;window.__wosvipOcrRange=46;await worker.setParameters({tessedit_pageseg_mode:'6',tessedit_char_whitelist:'',preserve_interword_spaces:'1'});const primary=await worker.recognize(prepared);
     window.__wosvipOcrPhase=50;window.__wosvipOcrRange=46;await worker.setParameters({tessedit_pageseg_mode:'11',tessedit_char_whitelist:'0123456789xX+-*/()^√.²³',preserve_interword_spaces:'1'});const alternate=await worker.recognize(prepared);
     onProgress?.(100);return combineCameraOcr(primary.data&&primary.data.text,alternate.data&&alternate.data.text)
