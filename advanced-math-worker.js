@@ -32,9 +32,26 @@ def solve_wosvip(source):
     source = str(source or "").strip()
     if not source or len(source) > 500 or not ALLOWED.match(source):
         raise ValueError("Expressão não suportada pelo motor avançado.")
-    expression = parse_expr(source.replace("^", "**"), local_dict=LOCAL, transformations=TRANSFORMS, evaluate=False)
-    combined = together(expression)
-    original_num, original_den = fraction(combined)
+    normalized = source.replace("^", "**")
+    expression = parse_expr(normalized, local_dict=LOCAL, transformations=TRANSFORMS, evaluate=False)
+    depth = 0
+    division_at = -1
+    for position, character in enumerate(normalized):
+        if character == "(":
+            depth += 1
+        elif character == ")":
+            depth -= 1
+        elif character == "/" and depth == 0:
+            division_at = position
+            break
+    if division_at >= 0:
+        numerator_source = normalized[:division_at]
+        denominator_source = normalized[division_at + 1:]
+        original_num = parse_expr(numerator_source, local_dict=LOCAL, transformations=TRANSFORMS, evaluate=False)
+        original_den = parse_expr(denominator_source, local_dict=LOCAL, transformations=TRANSFORMS, evaluate=False)
+    else:
+        original_num, original_den = fraction(expression)
+    combined = original_num / original_den
     simplified = cancel(combined)
     final_num, final_den = fraction(simplified)
     factored_num = factor(original_num)
@@ -47,8 +64,8 @@ def solve_wosvip(source):
         except Exception:
             pass
     restrictions = sorted_values(restrictions)
-    verified = simplify(combined - simplified) == 0
-    steps = [{"title": "Vamos simplificar a expressão", "math": txt(combined)}]
+    verified = simplify(expression - simplified) == 0
+    steps = [{"title": "Vamos simplificar a expressão", "math": source}]
     if original_den != 1:
         if factored_num != original_num:
             steps.append({"title": "Fatoramos o numerador", "math": txt(original_num)+" = "+txt(factored_num)})
@@ -56,11 +73,11 @@ def solve_wosvip(source):
             steps.append({"title": "Fatoramos o denominador", "math": txt(original_den)+" = "+txt(factored_den)})
         if factored_num != original_num or factored_den != original_den:
             steps.append({"title": "Substituímos as formas fatoradas", "math": "("+txt(factored_num)+")/("+txt(factored_den)+")"})
-        if simplified != combined:
-            steps.append({"title": "Cancelamos somente os fatores comuns", "math": txt(simplified)})
+        if factored_num != original_num or factored_den != original_den or simplified != combined:
+            steps.append({"title": "Cancelamos somente os fatores comuns", "math": "("+txt(factored_num)+")/("+txt(factored_den)+") = "+txt(simplified)})
     elif factor(expression) != expression:
         steps.append({"title": "Fatoramos a expressão", "math": txt(expression)+" = "+txt(factor(expression))})
-    if simplified == combined and original_den != 1:
+    if simplified == combined and factored_num == original_num and factored_den == original_den and original_den != 1:
         steps.append({"title": "A expressão já está na forma reduzida", "math": txt(simplified)})
     steps.append({"title": "Portanto, o resultado é", "math": txt(simplified), "result": True})
     explanation = ""
