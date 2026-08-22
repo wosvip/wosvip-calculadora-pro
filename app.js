@@ -312,7 +312,27 @@ function polynomialTermText(coefficient,power){
 }
 function symbolicCalculationSteps(formula,result){
   const steps=[{title:'Expressão original',html:stepMath(formula)}],fraction=splitMathFraction(formula);
-  if(fraction){const numerator=parseSimplePolynomial(fraction[0]),denominator=parseSimplePolynomial(fraction[1]);if(numerator&&denominator){const denominatorTerms=[...denominator.entries()].filter(([,coefficient])=>Math.abs(coefficient)>1e-12);if(denominatorTerms.length===1){const [denominatorPower,denominatorCoefficient]=denominatorTerms[0],pieces=[];for(const [power,coefficient] of [...numerator.entries()].sort((a,b)=>b[0]-a[0])){if(Math.abs(coefficient)<1e-12)continue;const term=polynomialTermText(coefficient,power),denominatorTerm=polynomialTermText(denominatorCoefficient,denominatorPower);pieces.push((pieces.length?(term.negative?' - ':' + '):(term.negative?'-':''))+'('+term.text+')/('+denominatorTerm.text+')')}if(pieces.length)steps.push({title:'Divida cada termo do numerador pelo denominador',html:stepMath(pieces.join(''))});steps.push({title:'Simplifique os coeficientes e subtraia os expoentes iguais',html:stepMath(result)});steps.push({title:'Resultado simplificado',html:stepMath(result)});return steps}}}
+  if(fraction){
+    const numerator=parseSimplePolynomial(fraction[0]),denominator=parseSimplePolynomial(fraction[1]);
+    if(numerator&&denominator){
+      const denominatorTerms=[...denominator.entries()].filter(([,coefficient])=>Math.abs(coefficient)>1e-12);
+      if(denominatorTerms.length===1){
+        const [denominatorPower,denominatorCoefficient]=denominatorTerms[0],pieces=[];
+        for(const [power,coefficient] of [...numerator.entries()].sort((a,b)=>b[0]-a[0])){
+          if(Math.abs(coefficient)<1e-12)continue;
+          const ratio=coefficient/denominatorCoefficient,absoluteNumerator=Math.abs(coefficient),absoluteDenominator=Math.abs(denominatorCoefficient),numeratorVariable=power===0?'1':power===1?'x':'x^'+power,denominatorVariable=denominatorPower===0?'1':denominatorPower===1?'x':'x^'+denominatorPower,reducedPower=power-denominatorPower,reducedAmount=+Math.abs(ratio).toPrecision(10),reducedCoefficient=reducedPower>0&&reducedAmount===1?'':String(reducedAmount),reducedVariable=reducedPower===0?'':reducedPower===1?'x':'x^'+reducedPower;
+          pieces.push({negative:ratio<0,numerator:(absoluteNumerator===1&&power>0?'':stepNumber(absoluteNumerator))+numeratorVariable,denominator:(absoluteDenominator===1&&denominatorPower>0?'':stepNumber(absoluteDenominator))+denominatorVariable,coefficientNumerator:stepNumber(absoluteNumerator),coefficientDenominator:stepNumber(absoluteDenominator),numeratorVariable,denominatorVariable,reduced:reducedCoefficient+reducedVariable})
+        }
+        if(pieces.length){
+          const separated='<div class="calculation-step-math symbolic-terms">'+pieces.map((piece,index)=>(index?'<b class="symbolic-sign">'+(piece.negative?'−':'+')+'</b>':piece.negative?'<b class="symbolic-sign">−</b>':'')+'<span class="symbolic-term">'+formatMath('('+piece.numerator+')/('+piece.denominator+')')+'</span>').join('')+'</div>';
+          steps.push({title:'Divida cada termo do numerador pelo denominador',html:separated});
+          const reductions='<div class="calculation-step-math symbolic-reductions">'+pieces.map((piece,index)=>'<div class="symbolic-reduction-row"><b>'+(piece.negative?'−':index?'+':'')+'</b><span>'+formatMath('('+piece.coefficientNumerator+')/('+piece.coefficientDenominator+')')+' × '+formatMath('('+piece.numeratorVariable+')/('+piece.denominatorVariable+')')+'</span><i>=</i><span>'+formatMath(piece.reduced)+'</span></div>').join('')+'</div>';
+          steps.push({title:'Reduza os coeficientes e subtraia os expoentes correspondentes',html:reductions})
+        }
+        steps.push({title:'Resultado simplificado',html:stepMath(result)});return steps
+      }
+    }
+  }
   steps.push({title:'Expressão algébrica',html:'<p>Para obter um número, informe os valores das variáveis presentes na expressão.</p>'});if(result)steps.push({title:'Forma simplificada',html:stepMath(result)});return steps
 }
 function calculationStepsContext(){
