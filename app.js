@@ -309,6 +309,16 @@ function simplifySymbolic(value){const fraction=splitMathFraction(value);if(!fra
 function stepNumber(value){const number=Number(value);return Number.isFinite(number)?String(+number.toPrecision(12)):String(value)}
 function stepMath(value){return '<div class="calculation-step-math">'+formatMath(String(value))+'</div>'}
 function numericCalculationSteps(formula,finalResult){
+  const rootMatch=String(formula).match(/^root\(([^,()]+),([^()]+)\)$/);
+  if(rootMatch){
+    const index=stepNumber(safeEval(rootMatch[1])),radicand=stepNumber(safeEval(rootMatch[2])),result=stepNumber(finalResult),power=radicand+'^(1/'+index+')';
+    return [
+      {title:'Expressão original',html:stepMath(formula)},
+      {title:'Transforme a raiz em potência de expoente fracionário',html:stepMath(power)},
+      {title:'Calcule a potência',html:stepMath(power+' = '+result)},
+      {title:'Resultado final',html:stepMath(result)}
+    ]
+  }
   const steps=[{title:'Expressão original',html:stepMath(formula)}];let working=closeParentheses(String(formula).replace(/(\d+(?:\.\d+)?)%(?![\d.(])/g,'($1/100)')),guard=0;
   const add=(title,before,part,value)=>{working=before.slice(0,part.index)+stepNumber(value)+before.slice(part.index+part[0].length);steps.push({title,html:stepMath(part[0]+' = '+stepNumber(value))+(working!==stepNumber(value)?'<small>Agora:</small>'+stepMath(working):'')})};
   const reduce=(regex,title)=>{let match;while((match=regex.exec(working))&&guard++<30){const before=working;try{add(title,before,match,safeEval(match[0]))}catch{break}regex.lastIndex=0}};
