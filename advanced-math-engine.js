@@ -4,7 +4,7 @@
   const pending=new Map();
   function getWorker(){
     if(worker)return worker;
-    worker=new Worker("./advanced-math-worker.js?v=4");
+    worker=new Worker("./advanced-math-worker.js?v=5");
     worker.onmessage=event=>{
       const data=event.data||{},request=pending.get(data.id);
       if(!request)return;

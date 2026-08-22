@@ -95,14 +95,14 @@ function cleanCameraOcrLine(raw){
   return String(raw||'').replace(/[−–—_=|]/g,char=>/[−–—]/.test(char)?'-':'').replace(/[×·]/g,'*').replace(/÷/g,'/').replace(/²/g,'^2').replace(/³/g,'^3').replace(/([xX])\s*(?:[?°º*]|2)(?=\s*[-+)]|$)/g,'$1^2').replace(/\s+/g,'').replace(/[^0-9A-Za-zπ√∛+\-*/^().,%]/g,'')
 }
 function scoreCameraOcrLine(line){
-  const foreign=(line.match(/[A-WYZ]/gi)||[]).length,operators=(line.match(/[+\-/^]/g)||[]).length,variables=(line.match(/[xX]/g)||[]).length,powers=(line.match(/\^2|\^3/g)||[]).length;
+  const foreign=(line.match(/[A-Za-z]/g)||[]).filter(char=>!/[xy]/i.test(char)).length,operators=(line.match(/[+\-/^]/g)||[]).length,variables=(line.match(/[xXyY]/g)||[]).length,powers=(line.match(/\^2|\^3/g)||[]).length;
   return line.length+operators*4+variables*3+powers*5-foreign*9
 }
 function combineCameraOcr(primary,alternate){
   const a=cameraOcrLines(primary),b=cameraOcrLines(alternate),count=Math.max(a.length,b.length),lines=[];
   for(let i=0;i<count;i++){let first=cleanCameraOcrLine(a[i]||''),second=cleanCameraOcrLine(b[i]||'');if(/^\d+$/.test(first)&&/^\d+[xX]$/.test(second)){const digits=second.slice(0,-1);if(first.endsWith(digits))second=first+'x'}else if(/^\d+[xX]$/.test(first)&&/^\d+$/.test(second)){const digits=first.slice(0,-1);if(second.endsWith(digits))first=second+'x'}const chosen=scoreCameraOcrLine(second)>scoreCameraOcrLine(first)?second:first;if(chosen)lines.push(chosen)}
   let text=lines.length===2?'('+lines[0]+')/('+lines[1]+')':lines.join('');
-  return text.replace(/√\s*([0-9A-Za-z.]+)/g,'√($1)').replace(/([0-9)])(?=√|\()/g,'$1*').replace(/([0-9)])([xX])/g,'$1*$2')
+  return text.replace(/√\s*([0-9A-Za-z.]+)/g,'√($1)').replace(/([0-9)])(?=√|\()/g,'$1*').replace(/([0-9)])([xXyY])/g,'$1*$2')
 }
 async function prepareCameraOcrImage(image){
   const bitmap=await createImageBitmap(image),scale=Math.min(4,Math.max(2,1400/Math.max(1,bitmap.width))),canvas=document.createElement('canvas');canvas.width=Math.round(bitmap.width*scale);canvas.height=Math.round(bitmap.height*scale);const context=canvas.getContext('2d');context.fillStyle='#fff';context.fillRect(0,0,canvas.width,canvas.height);context.filter='grayscale(1) contrast(165%)';context.imageSmoothingEnabled=true;context.imageSmoothingQuality='high';context.drawImage(bitmap,0,0,canvas.width,canvas.height);bitmap.close?.();return canvas
@@ -129,7 +129,7 @@ function cameraCropCanvas(source,box){
   const canvas=document.createElement('canvas'),scale=1.35;canvas.width=Math.max(1,Math.round(box.width*scale));canvas.height=Math.max(1,Math.round(box.height*scale));const context=canvas.getContext('2d');context.fillStyle='#fff';context.fillRect(0,0,canvas.width,canvas.height);context.imageSmoothingEnabled=true;context.imageSmoothingQuality='high';context.drawImage(source,box.x,box.y,box.width,box.height,0,0,canvas.width,canvas.height);return canvas
 }
 function cleanCameraFractionPart(value){
-  return String(value||'').replace(/[|_]/g,'').replace(/[×·]/g,'*').replace(/[—–−]/g,'-').replace(/\s+/g,'').replace(/([0-9)])X/gi,'$1x').replace(/X(?=[0-9(])/g,'x').replace(/[?]/g,'^2').replace(/²/g,'^2').replace(/³/g,'^3').replace(/[^0-9xX+\-*/().^√]/g,'')
+  return String(value||'').replace(/[|_]/g,'').replace(/[×·]/g,'*').replace(/[—–−]/g,'-').replace(/\s+/g,'').replace(/([0-9)])([XY])/g,(match,digit,variable)=>digit+variable.toLowerCase()).replace(/[XY](?=[0-9(])/g,variable=>variable.toLowerCase()).replace(/[?]/g,'^2').replace(/²/g,'^2').replace(/³/g,'^3').replace(/[^0-9xXyY+\-*/().^√]/g,'')
 }
 function readLatexGroup(text,start){
   if(text[start]!=='{')return null;let depth=0;
@@ -144,8 +144,8 @@ function expandLatexFractions(value){
 function latexToCalculator(value){
   let text=expandLatexFractions(String(value||'').replace(/\\left|\\right/g,''));
   for(let guard=0;guard<8;guard++){const match=/\\sqrt\s*\{/.exec(text);if(!match)break;const start=match.index+match[0].lastIndexOf('{'),group=readLatexGroup(text,start);if(!group)break;text=text.slice(0,match.index)+'√('+latexToCalculator(group.value)+')'+text.slice(group.end)}
-  text=text.replace(/\\(?:cdot|times)/g,'*').replace(/\\div/g,'/').replace(/\\(?:mathrm|text|operatorname)\s*\{([^{}]*)\}/g,'$1').replace(/\^\s*\{(-?\d+(?:\.\d+)?)\}/g,'^$1').replace(/\^\s*\{([^{}]+)\}/g,'^($1)').replace(/_\s*\{[^{}]*\}/g,'').replace(/[{}]/g,'').replace(/[×·]/g,'*').replace(/[—–−]/g,'-').replace(/\\,/g,'').replace(/\\[a-zA-Z]+/g,'').replace(/\s+/g,'').replace(/X/g,'x');
-  text=text.replace(/\^\((-?\d+(?:\.\d+)?)\)/g,'^$1').replace(/(\d|x|\))(?=x|\()/g,'$1*').replace(/\)(?=\d)/g,')*').replace(/[^0-9x+\-*/().^√]/g,'');
+  text=text.replace(/\\(?:cdot|times)/g,'*').replace(/\\div/g,'/').replace(/\\(?:mathrm|text|operatorname)\s*\{([^{}]*)\}/g,'$1').replace(/\^\s*\{(-?\d+(?:\.\d+)?)\}/g,'^$1').replace(/\^\s*\{([^{}]+)\}/g,'^($1)').replace(/_\s*\{[^{}]*\}/g,'').replace(/[{}]/g,'').replace(/[×·]/g,'*').replace(/[—–−]/g,'-').replace(/\\,/g,'').replace(/\\[a-zA-Z]+/g,'').replace(/\s+/g,'').replace(/X/g,'x').replace(/Y/g,'y');
+  text=text.replace(/\^\((-?\d+(?:\.\d+)?)\)/g,'^$1').replace(/(\d|x|y|\))(?=x|y|\()/g,'$1*').replace(/\)(?=\d)/g,')*').replace(/[^0-9xy+\-*/().^√]/g,'');
   const splitMinus=text.match(/^\(([^()]+)\)\/\(([^()]+)\)\*?\(([^()]+)\)\/\(([^()]+)\)$/);if(splitMinus)text='('+splitMinus[1]+'-'+splitMinus[3]+')/('+splitMinus[2]+'-'+splitMinus[4]+')';
   return text
 }
@@ -168,20 +168,20 @@ async function recognizeFormulaModel(image,onProgress){
 async function recognizeCameraMath(image,onProgress){
   try{
     onProgress?.(1);const latex=await recognizeFormulaModel(image,onProgress),formula=latexToCalculator(latex);
-    if(formula&&/[0-9x]/.test(formula)){onProgress?.(100);return formula}
+    if(formula&&/[0-9xy]/.test(formula)){onProgress?.(100);return formula}
   }catch(error){console.warn('Leitor matemático principal indisponível; usando reserva.',error)}
   const worker=await loadCameraOcr(),prepared=await prepareCameraOcrImage(image);window.__wosvipOcrProgress=onProgress;
   try{
     const regions=cameraFractionRegions(prepared);
     if(regions){
-      await worker.setParameters({tessedit_pageseg_mode:'7',tessedit_char_whitelist:'0123456789xX+-*/()^√.²³',preserve_interword_spaces:'1'});
+      await worker.setParameters({tessedit_pageseg_mode:'7',tessedit_char_whitelist:'0123456789xXyY+-*/()^√.²³',preserve_interword_spaces:'1'});
       window.__wosvipOcrPhase=0;window.__wosvipOcrRange=42;const numeratorResult=await worker.recognize(cameraCropCanvas(prepared,regions.numerator));
       window.__wosvipOcrPhase=45;window.__wosvipOcrRange=42;const denominatorResult=await worker.recognize(cameraCropCanvas(prepared,regions.denominator));
       const numerator=cleanCameraFractionPart(numeratorResult.data&&numeratorResult.data.text),denominator=cleanCameraFractionPart(denominatorResult.data&&denominatorResult.data.text);
-      if(numerator&&denominator&&/[0-9xX]/.test(numerator)&&/[0-9xX]/.test(denominator)){onProgress?.(100);return '('+numerator+')/('+denominator+')'}
+      if(numerator&&denominator&&/[0-9xXyY]/.test(numerator)&&/[0-9xXyY]/.test(denominator)){onProgress?.(100);return '('+numerator+')/('+denominator+')'}
     }
     window.__wosvipOcrPhase=0;window.__wosvipOcrRange=46;await worker.setParameters({tessedit_pageseg_mode:'6',tessedit_char_whitelist:'',preserve_interword_spaces:'1'});const primary=await worker.recognize(prepared);
-    window.__wosvipOcrPhase=50;window.__wosvipOcrRange=46;await worker.setParameters({tessedit_pageseg_mode:'11',tessedit_char_whitelist:'0123456789xX+-*/()^√.²³',preserve_interword_spaces:'1'});const alternate=await worker.recognize(prepared);
+    window.__wosvipOcrPhase=50;window.__wosvipOcrRange=46;await worker.setParameters({tessedit_pageseg_mode:'11',tessedit_char_whitelist:'0123456789xXyY+-*/()^√.²³',preserve_interword_spaces:'1'});const alternate=await worker.recognize(prepared);
     onProgress?.(100);return combineCameraOcr(primary.data&&primary.data.text,alternate.data&&alternate.data.text)
   }finally{window.__wosvipOcrProgress=null}
 }
@@ -420,5 +420,5 @@ updateInstallButton();
 if('serviceWorker'in navigator){
   let serviceWorkerRefreshing=false;
   navigator.serviceWorker.addEventListener('controllerchange',()=>{if(serviceWorkerRefreshing)return;serviceWorkerRefreshing=true;if(!sessionStorage.getItem('wosvip-sw-reloaded')){sessionStorage.setItem('wosvip-sw-reloaded','1');location.reload()}});
-  window.addEventListener('load',async()=>{try{const registration=await navigator.serviceWorker.register('./sw.js?v=34',{updateViaCache:'none'});await registration.update();if(registration.waiting)registration.waiting.postMessage({type:'SKIP_WAITING'});setTimeout(()=>sessionStorage.removeItem('wosvip-sw-reloaded'),8000)}catch{}});
+  window.addEventListener('load',async()=>{try{const registration=await navigator.serviceWorker.register('./sw.js?v=35',{updateViaCache:'none'});await registration.update();if(registration.waiting)registration.waiting.postMessage({type:'SKIP_WAITING'});setTimeout(()=>sessionStorage.removeItem('wosvip-sw-reloaded'),8000)}catch{}});
 }
