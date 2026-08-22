@@ -1,6 +1,6 @@
 "use strict";
-const CACHE_NAME = "wosvip-calculadora-v34-ocr-dominio";
-const ARQUIVOS = ["./","./index.html","./manifest.json","./styles.css?v=26","./app.js?v=36","./formula-ocr-worker.js?v=1","./icon.svg","./icon-192.png","./icon-512.png","./icon-maskable-192.png","./icon-maskable-512.png"];
+const CACHE_NAME = "wosvip-calculadora-v35-card-preto";
+const ARQUIVOS = ["./","./index.html","./manifest.json","./styles.css?v=27","./app.js?v=36","./formula-ocr-worker.js?v=1","./icon.svg","./icon-192.png","./icon-512.png","./icon-maskable-192.png","./icon-maskable-512.png"];
 self.addEventListener("message", event => { if (event.data && event.data.type === "SKIP_WAITING") self.skipWaiting(); });
 self.addEventListener("install", event => {
   event.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(ARQUIVOS)));
