@@ -97,3 +97,5 @@ html.standalone-app body>header{display:none!important}
   html.standalone-app .app-brand-plaque strong{font-size:clamp(14px,2.3dvh,19px);letter-spacing:.7px;text-shadow:0 1px 0 #6c7780,0 2px 0 #313940,0 3px 4px #000,0 0 8px #fff8}
 }
 @media(max-height:700px) and (max-width:600px){.app-brand-plaque{display:none!important}}
+
+.math-fraction{display:inline-grid;grid-template-rows:auto auto;vertical-align:middle;min-width:62px;text-align:center;font-family:Cambria Math,Times New Roman,serif;line-height:1.05}.math-fraction>span:first-child{padding:0 7px 4px;border-bottom:2px solid currentColor}.math-fraction>span:last-child{padding:4px 7px 0}.math-camera-rendered{box-sizing:border-box;display:flex;align-items:center;justify-content:center;min-height:82px;padding:12px;border:1px solid #68727a;background:#505050;color:#fff;font-family:Cambria Math,Times New Roman,serif;font-size:25px;overflow:auto}.math-camera-rendered .math-fraction{min-width:130px}
