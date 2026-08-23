@@ -1,6 +1,6 @@
 "use strict";
-const CACHE_NAME = "wosvip-calculadora-v50-sobre-readme";
-const ARQUIVOS = ["./","./index.html","./manifest.json","./styles.css?v=35","./advanced-math-engine.js?v=5","./advanced-math-worker.js?v=5","./app.js?v=50","./formula-ocr-worker.js?v=1","./icon.svg","./icon-192.png","./icon-512.png","./icon-maskable-192.png","./icon-maskable-512.png"];
+const CACHE_NAME = "wosvip-calculadora-v51-x-inverso";
+const ARQUIVOS = ["./","./index.html","./manifest.json","./styles.css?v=35","./advanced-math-engine.js?v=5","./advanced-math-worker.js?v=5","./app.js?v=51","./formula-ocr-worker.js?v=1","./icon.svg","./icon-192.png","./icon-512.png","./icon-maskable-192.png","./icon-maskable-512.png"];
 self.addEventListener("message", event => { if (event.data && event.data.type === "SKIP_WAITING") self.skipWaiting(); });
 self.addEventListener("install", event => {
   event.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(ARQUIVOS)));
