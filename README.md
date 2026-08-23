@@ -26,6 +26,19 @@ A expressão é formatada no visor, o resultado numérico aparece instantaneamen
 
 O enquadramento e a instalação foram testados como PWA no **Windows** e no **Moto G77**.
 
+### Demonstração em vídeo
+
+<p align="center">
+  <a href="docs/videos/wosvip-calculadora-pro.mp4">
+    <img src="docs/videos/capa-demonstracao.png" width="390" alt="Assistir à demonstração da WOSVIP Calculadora PRO">
+  </a>
+</p>
+
+<p align="center">
+  <a href="docs/videos/wosvip-calculadora-pro.mp4"><strong>▶ ASSISTIR À DEMONSTRAÇÃO DA CALCULADORA</strong></a><br>
+  <sub>Vídeo curto mostrando a utilização no celular e a identidade animada da Calculadora PRO.</sub>
+</p>
+
 <table>
   <tr>
     <td align="center"><strong>Aplicativo no Moto G77</strong></td>
