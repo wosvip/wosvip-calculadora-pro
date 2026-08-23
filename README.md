@@ -104,6 +104,9 @@ A tecla de câmera abre um fluxo próprio para captura de expressões:
 
 O campo de revisão é importante para remover numeração de exercícios ou corrigir algum caractere antes de calcular.
 
+> [!IMPORTANT]
+> **A fórmula reconhecida pode ser corrigida imediatamente.** Se o conteúdo exibido pela câmera não estiver idêntico à fórmula original, toque no campo da fórmula reconhecida e edite números, sinais, letras ou expoentes. Depois de conferir a correção, toque em **Inserir no visor** para realizar o cálculo.
+
 ### Expressões algébricas com duas variáveis
 
 O leitor e o motor simbólico aceitam `x`, `y`, produtos como `2xy`, potências e frações algébricas.
