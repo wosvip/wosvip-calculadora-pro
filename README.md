@@ -11,6 +11,7 @@
   <img alt="JavaScript" src="https://img.shields.io/badge/JavaScript-puro-f7df1e?logo=javascript&logoColor=111">
   <img alt="Windows" src="https://img.shields.io/badge/Windows-compatível-0078d4?logo=windows11">
   <img alt="Android" src="https://img.shields.io/badge/Android-compatível-3ddc84?logo=android&logoColor=111">
+  <img alt="Tablet" src="https://img.shields.io/badge/Tablet-responsivo-2f87ff?logo=android&logoColor=white">
   <img alt="GitHub Pages" src="https://img.shields.io/badge/GitHub%20Pages-online-222?logo=github">
 </p>
 
@@ -26,7 +27,7 @@ A expressão é formatada no visor, o resultado numérico aparece instantaneamen
 
 ## Aplicativo validado
 
-O enquadramento e a instalação foram testados como PWA no **Windows** e no **Moto G77**.
+O enquadramento e a instalação foram testados como PWA no **Windows**, no smartphone **Moto G77** e em **tablet Android**. O layout responsivo amplia o visor e as teclas em telas maiores e mantém a identidade animada **WOSVIP Calculadora PRO** visível no rodapé.
 
 ### Demonstração em vídeo
 
@@ -272,6 +273,7 @@ O reconhecimento por câmera necessita de internet na primeira utilização para
 | Plataforma | Navegadores | Situação |
 |---|---|---|
 | Android / Moto G77 | Chrome | Instalado e enquadrado em tela cheia |
+| Tablet Android | Chrome | Layout responsivo ampliado, teclas maiores e identidade animada no rodapé |
 | Windows | Chrome e Edge | Instalado em janela própria |
 
 Outros navegadores modernos podem funcionar, mas a instalação, a câmera e o armazenamento do modelo dependem do suporte oferecido por cada navegador.
