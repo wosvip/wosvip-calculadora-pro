@@ -1,5 +1,5 @@
 "use strict";
-const CACHE_NAME = "wosvip-calculadora-v55-marca-animada";
+const CACHE_NAME = "wosvip-calculadora-v56-video-streaming";
 const ARQUIVOS = ["./","./index.html","./manifest.json","./styles.css?v=38","./advanced-math-engine.js?v=5","./advanced-math-worker.js?v=5","./app.js?v=53","./formula-ocr-worker.js?v=1","./Calculadora-PRO-Efeito-TV-Sintonizando-HD.gif","./icon.svg","./icon-192.png","./icon-512.png","./icon-maskable-192.png","./icon-maskable-512.png"];
 self.addEventListener("message", event => { if (event.data && event.data.type === "SKIP_WAITING") self.skipWaiting(); });
 self.addEventListener("install", event => {
@@ -14,6 +14,7 @@ self.addEventListener("fetch", event => {
   if (event.request.method !== "GET") return;
   const url = new URL(event.request.url);
   if (url.origin !== self.location.origin) return;
+  if (event.request.destination === "video" || url.pathname.endsWith(".mp4") || event.request.headers.has("range")) return;
   event.respondWith((async () => {
     try {
       const response = await fetch(event.request);

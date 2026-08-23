@@ -29,13 +29,13 @@ O enquadramento e a instalação foram testados como PWA no **Windows** e no **M
 ### Demonstração em vídeo
 
 <p align="center">
-  <a href="https://wosvip.github.io/wosvip-calculadora-pro/docs/videos/wosvip-calculadora-pro.mp4?v=2">
+  <a href="https://wosvip.github.io/wosvip-calculadora-pro/docs/videos/wosvip-calculadora-pro.mp4?v=3" target="_blank" rel="noopener">
     <img src="docs/videos/capa-demonstracao.png" width="390" alt="Assistir à demonstração da WOSVIP Calculadora PRO">
   </a>
 </p>
 
 <p align="center">
-  <a href="https://wosvip.github.io/wosvip-calculadora-pro/docs/videos/wosvip-calculadora-pro.mp4?v=2"><strong>▶ ASSISTIR À DEMONSTRAÇÃO DA CALCULADORA</strong></a><br>
+  <a href="https://wosvip.github.io/wosvip-calculadora-pro/docs/videos/wosvip-calculadora-pro.mp4?v=3" target="_blank" rel="noopener"><strong>▶ ASSISTIR À DEMONSTRAÇÃO DA CALCULADORA</strong></a><br>
   <sub>Vídeo curto mostrando a utilização no celular e a identidade animada da Calculadora PRO.</sub>
 </p>
 
