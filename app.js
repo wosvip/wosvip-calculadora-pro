@@ -550,5 +550,5 @@ document.addEventListener('keydown',event=>{const target=event.target;if(target&
 if('serviceWorker'in navigator){
   let serviceWorkerRefreshing=false;
   navigator.serviceWorker.addEventListener('controllerchange',()=>{if(serviceWorkerRefreshing)return;serviceWorkerRefreshing=true;if(!sessionStorage.getItem('wosvip-sw-reloaded')){sessionStorage.setItem('wosvip-sw-reloaded','1');location.reload()}});
-  window.addEventListener('load',async()=>{try{const registration=await navigator.serviceWorker.register('./sw.js?v=36',{updateViaCache:'none'});await registration.update();if(registration.waiting)registration.waiting.postMessage({type:'SKIP_WAITING'});setTimeout(()=>sessionStorage.removeItem('wosvip-sw-reloaded'),8000)}catch{}});
+  window.addEventListener('load',async()=>{try{const registration=await navigator.serviceWorker.register('./sw.js?v=37',{updateViaCache:'none'});await registration.update();if(registration.waiting)registration.waiting.postMessage({type:'SKIP_WAITING'});setTimeout(()=>sessionStorage.removeItem('wosvip-sw-reloaded'),8000)}catch{}});
 }
