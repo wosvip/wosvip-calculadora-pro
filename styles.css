@@ -213,3 +213,15 @@ html.standalone-app body>header{display:none!important}
   .lcd-status{font-size:clamp(10px,2.8dvh,13px)}
   .app-brand-plaque,html.standalone-app .app-brand-plaque{display:none!important}
 }
+
+
+/* Configuração DEG/RAD e formato numérico BR/US */
+#numberFormatLabel{font-weight:700;color:#26332a}
+.mode-settings-dialog{max-width:440px}
+.mode-setting-group{display:grid;gap:8px;margin:15px 0}
+.mode-setting-group>span{color:#cce5b5;font-size:13px;font-weight:700}
+.mode-setting-group>div{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.mode-setting-group button,.mode-settings-close{padding:12px;border:1px solid #75818a;border-radius:8px;background:#e8ecee;color:#182127;font-size:15px;font-weight:700}
+.mode-setting-group button.selected{border-color:#20c7aa;background:#20c7aa;color:#071512;box-shadow:0 0 12px #20c7aa66}
+.mode-settings-close{display:block;width:100%;margin-top:18px;background:#444d54;color:#fff}
+.classic-key-wrap button.physical-key-active{transform:translateY(1px);filter:brightness(.72);box-shadow:inset 0 2px 5px #000b,0 0 9px #20c7aaaa}
