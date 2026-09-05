@@ -4,13 +4,13 @@
   const screen = document.querySelector('#screen');
   if (!key || !shiftKey || !screen) return;
 
-  const originalClick = key.onclick;
   const modes = ['FIX', 'SCI', 'ENG'];
   let fseMode = localStorage.getItem('wosvipFseMode') || 'FIX';
+  let xeScientific = false;
   if (!modes.includes(fseMode)) fseMode = 'FIX';
 
   key.dataset.secondaryLabel = 'FSE';
-  key.title = `FSE • modo atual: ${fseMode}`;
+  key.title = `x↔E • FSE atual: ${fseMode}`;
 
   function parseDisplayedNumber(text) {
     let value = String(text || '').trim();
@@ -57,55 +57,72 @@
   }
 
   function restoreNormalDisplay() {
-    if (typeof window.updateDisplay === 'function') {
-      window.updateDisplay();
-    }
+    if (typeof window.updateDisplay === 'function') window.updateDisplay();
   }
 
-  function applyFseToScreen() {
-    if (fseMode === 'FIX') return;
+  function applyChosenPresentation() {
     const value = parseDisplayedNumber(screen.value);
     if (!Number.isFinite(value)) return;
-    screen.value = fseMode === 'SCI'
-      ? formatScientific(value)
-      : formatEngineering(value);
+
+    if (xeScientific) {
+      screen.value = formatScientific(value);
+      return;
+    }
+
+    if (fseMode === 'SCI') screen.value = formatScientific(value);
+    else if (fseMode === 'ENG') screen.value = formatEngineering(value);
   }
 
   function cycleFseMode() {
+    xeScientific = false;
     const index = modes.indexOf(fseMode);
     fseMode = modes[(index + 1) % modes.length];
     localStorage.setItem('wosvipFseMode', fseMode);
-    key.title = `FSE • modo atual: ${fseMode}`;
+    key.title = `x↔E • FSE atual: ${fseMode}`;
 
-    if (fseMode === 'FIX') restoreNormalDisplay();
-    else applyFseToScreen();
+    restoreNormalDisplay();
+    if (fseMode !== 'FIX') applyChosenPresentation();
   }
 
-  // Replace the original onclick only for this key. When SHIFT has changed the
-  // visible face to FSE, consume that click here and never call the original
-  // `sci` action. Therefore FSE changes presentation only; it cannot write
-  // exponential notation into `expr` or move the edit caret.
+  function toggleXeScientific() {
+    xeScientific = !xeScientific;
+    restoreNormalDisplay();
+    if (xeScientific) applyChosenPresentation();
+    else if (fseMode !== 'FIX') applyChosenPresentation();
+  }
+
+  // This key is fully routed here so neither primary x↔E nor SHIFT+FSE can
+  // execute the legacy `sci` action, which rewrote the internal expression.
   key.onclick = event => {
+    event.preventDefault();
+    event.stopPropagation();
+
     if (key.textContent.trim() === 'FSE') {
-      event.preventDefault();
-      event.stopPropagation();
-      shiftKey.click(); // disarm SHIFT and restore the primary key faces
+      shiftKey.click();
       cycleFseMode();
       return false;
     }
 
-    return typeof originalClick === 'function'
-      ? originalClick.call(key, event)
-      : undefined;
+    toggleXeScientific();
+    return false;
   };
 
-  // Reapply the selected presentation after other calculator operations, but
-  // never modify the expression itself.
+  // Any normal calculator edit leaves x↔E one-shot presentation and preserves
+  // the persistent FSE mode. Only the screen is formatted; `expr` is untouched.
   document.addEventListener('click', event => {
     if (event.target.closest('button') === key) return;
-    setTimeout(applyFseToScreen, 0);
+    xeScientific = false;
+    setTimeout(() => {
+      if (fseMode !== 'FIX') applyChosenPresentation();
+    }, 0);
   });
-  document.addEventListener('keydown', () => setTimeout(applyFseToScreen, 0));
 
-  if (fseMode !== 'FIX') setTimeout(applyFseToScreen, 0);
+  document.addEventListener('keydown', () => {
+    xeScientific = false;
+    setTimeout(() => {
+      if (fseMode !== 'FIX') applyChosenPresentation();
+    }, 0);
+  });
+
+  if (fseMode !== 'FIX') setTimeout(applyChosenPresentation, 0);
 })();
