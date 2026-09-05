@@ -4,6 +4,7 @@
   const screen = document.querySelector('#screen');
   if (!key || !shiftKey || !screen) return;
 
+  const originalClick = key.onclick;
   const modes = ['FIX', 'SCI', 'ENG'];
   let fseMode = localStorage.getItem('wosvipFseMode') || 'FIX';
   if (!modes.includes(fseMode)) fseMode = 'FIX';
@@ -44,7 +45,8 @@
   function formatScientific(value) {
     if (value === 0) return '0E+0';
     const [mantissa, exponent] = value.toExponential(10).split('e');
-    return `${localizeDecimal(trimMantissa(mantissa))}E${Number(exponent) >= 0 ? '+' : ''}${Number(exponent)}`;
+    const exp = Number(exponent);
+    return `${localizeDecimal(trimMantissa(mantissa))}E${exp >= 0 ? '+' : ''}${exp}`;
   }
 
   function formatEngineering(value) {
@@ -52,6 +54,12 @@
     const exponent = Math.floor(Math.log10(Math.abs(value)) / 3) * 3;
     const mantissa = value / (10 ** exponent);
     return `${localizeDecimal(trimMantissa(mantissa))}E${exponent >= 0 ? '+' : ''}${exponent}`;
+  }
+
+  function restoreNormalDisplay() {
+    if (typeof window.updateDisplay === 'function') {
+      window.updateDisplay();
+    }
   }
 
   function applyFseToScreen() {
@@ -69,30 +77,35 @@
     localStorage.setItem('wosvipFseMode', fseMode);
     key.title = `FSE • modo atual: ${fseMode}`;
 
-    // Rebuild the normal numeric display first when returning to FIX.
-    if (fseMode === 'FIX' && typeof window.updateDisplay === 'function') {
-      window.updateDisplay();
-    } else {
-      applyFseToScreen();
-    }
+    if (fseMode === 'FIX') restoreNormalDisplay();
+    else applyFseToScreen();
   }
 
-  // The current app maps x↔E and SHIFT+FSE to the same "sci" action.
-  // Intercept only when the visible key face is FSE (SHIFT armed), disarm
-  // SHIFT, and execute the independent display-mode cycle instead.
+  // Replace the original onclick only for this key. When SHIFT has changed the
+  // visible face to FSE, consume that click here and never call the original
+  // `sci` action. Therefore FSE changes presentation only; it cannot write
+  // exponential notation into `expr` or move the edit caret.
+  key.onclick = event => {
+    if (key.textContent.trim() === 'FSE') {
+      event.preventDefault();
+      event.stopPropagation();
+      shiftKey.click(); // disarm SHIFT and restore the primary key faces
+      cycleFseMode();
+      return false;
+    }
+
+    return typeof originalClick === 'function'
+      ? originalClick.call(key, event)
+      : undefined;
+  };
+
+  // Reapply the selected presentation after other calculator operations, but
+  // never modify the expression itself.
   document.addEventListener('click', event => {
-    const button = event.target.closest('button');
-    if (button !== key || key.textContent.trim() !== 'FSE') return;
-
-    event.preventDefault();
-    event.stopImmediatePropagation();
-    shiftKey.click();
-    cycleFseMode();
-  }, true);
-
-  // Preserve the chosen FSE presentation after normal calculator actions.
-  document.addEventListener('click', () => setTimeout(applyFseToScreen, 0));
+    if (event.target.closest('button') === key) return;
+    setTimeout(applyFseToScreen, 0);
+  });
   document.addEventListener('keydown', () => setTimeout(applyFseToScreen, 0));
 
-  applyFseToScreen();
+  if (fseMode !== 'FIX') setTimeout(applyFseToScreen, 0);
 })();
