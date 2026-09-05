@@ -5,6 +5,12 @@
   let percentInfo=null;
 
   function cleanNumber(v){return String(+Number(v).toPrecision(12));}
+  function displayNumber(v){
+    const value=Number(v);
+    if(!Number.isFinite(value))return String(v);
+    const text=cleanNumber(value);
+    return numberFormat==="BR"?text.replace(".",","):text;
+  }
   function parseSimplePercent(source){
     const s=String(source||"").replace(/\s+/g,"").replace(/,/g,".");
     const m=s.match(/^(-?(?:\d+(?:\.\d+)?|\.\d+))([+\-*/])(-?(?:\d+(?:\.\d+)?|\.\d+))%$/);
@@ -23,11 +29,16 @@
 
   window.press=function(action){
     if(action==="percent"){
-      // Keep % visible in the expression. The contextual HP calculation is
-      // applied by safeEval/equal through the transformed expression below.
       insertAtCursor("%");
       resultShown=false;
       updateDisplay();
+      const p=parseSimplePercent(expr);
+      if(p){
+        const r=calculate(p);
+        percentInfo={...p,...r};
+        const screen=document.getElementById("screen");
+        if(screen)screen.value=displayNumber(r.amount);
+      }
       return;
     }
     if(action==="equal"){
@@ -49,8 +60,6 @@
     return originalPress(action);
   };
 
-  // Live preview: safeEval normally treats 30% as 0.3. For a simple
-  // base +/-/*// percentage expression, reinterpret it contextually.
   const originalSafeEval=window.safeEval;
   if(typeof originalSafeEval==="function"){
     window.safeEval=function(source,x){
