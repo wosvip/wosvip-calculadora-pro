@@ -1,63 +1,50 @@
 (() => {
   const equalKey = document.querySelector('#numberKeys button[data-action="equal"]');
-  if (!equalKey) return;
+  const expressionEl = document.querySelector('#expression');
+  if (!equalKey || !expressionEl) return;
 
-  let reuseConfirmedResult = false;
+  let armedValue = null;
 
   const unaryBuilders = {
-    sin: value => `sin(${value})`,
-    cos: value => `cos(${value})`,
-    tan: value => `tan(${value})`,
-    asin: value => `asin(${value})`,
-    acos: value => `acos(${value})`,
-    atan: value => `atan(${value})`,
-    sqrt: value => `√(${value})`,
-    cbrt: value => `∛(${value})`,
-    inv: value => `1/(${value})`,
-    sq: value => `(${value})^2`,
-    cube: value => `(${value})^3`,
-    ln: value => `ln(${value})`,
-    log: value => `log(${value})`,
-    pow10: value => `10^(${value})`,
-    powE: value => `e^(${value})`,
-    absolute: value => `abs(${value})`,
-    factorial: value => `(${value})!`
+    sin: v => `sin(${v})`, cos: v => `cos(${v})`, tan: v => `tan(${v})`,
+    asin: v => `asin(${v})`, acos: v => `acos(${v})`, atan: v => `atan(${v})`,
+    sqrt: v => `√(${v})`, cbrt: v => `∛(${v})`, inv: v => `1/(${v})`,
+    sq: v => `(${v})^2`, cube: v => `(${v})^3`, ln: v => `ln(${v})`,
+    log: v => `log(${v})`, pow10: v => `10^(${v})`, powE: v => `e^(${v})`,
+    absolute: v => `abs(${v})`, factorial: v => `(${v})!`
   };
 
-  function currentAction(button) {
+  function actionOf(button) {
     return shiftActive && button.dataset.secondaryAction
       ? button.dataset.secondaryAction
       : button.dataset.action;
   }
 
-  function reuseValueWith(action) {
-    const build = unaryBuilders[action];
-    if (!build) return false;
+  function plainExpression() {
+    return String(expressionEl.textContent || '')
+      .replace(/\|/g, '')
+      .replace(/\s+/g, '')
+      .trim();
+  }
 
-    const value = String(expr || '').trim();
-    if (!value) return false;
-
-    expr = build(value);
-    cursorPosition = expr.length;
-    lastFormula = '';
-    resultShown = false;
-    reuseConfirmedResult = false;
-
-    if (shiftActive) setShift(false);
-    updateDisplay();
+  function armFromCurrentExpression() {
+    const value = plainExpression();
+    if (!value || value === 'Pronto') return false;
+    armedValue = value;
     return true;
   }
 
-  // Preserve the existing first '=' behavior. A second '=' pressed while a
-  // result is already shown arms that value as the operand of the next unary
-  // scientific function.
   const originalEqualClick = equalKey.onclick;
   equalKey.onclick = event => {
-    const wasResultShown = resultShown;
+    // The app already uses '=' to place/confirm the current result in expr.
+    // If the visible expression is already just that confirmed value, arm it
+    // BEFORE the original handler can change any internal result flag.
+    const before = plainExpression();
+    const shouldArm = !!before && before !== 'Pronto' && !/[+*/^()]|(?<!^)-/.test(before);
     const response = typeof originalEqualClick === 'function'
       ? originalEqualClick.call(equalKey, event)
       : undefined;
-    reuseConfirmedResult = wasResultShown && resultShown && !!String(expr || '').trim();
+    if (shouldArm) armFromCurrentExpression();
     return response;
   };
 
@@ -67,19 +54,27 @@
     if (typeof originalClick !== 'function') return;
 
     button.onclick = event => {
-      const action = currentAction(button);
-      if (reuseConfirmedResult && unaryBuilders[action]) {
+      const action = actionOf(button);
+      const build = unaryBuilders[action];
+
+      if (armedValue !== null && build) {
         event.preventDefault();
         event.stopPropagation();
-        reuseValueWith(action);
+        const value = armedValue;
+        armedValue = null;
+
+        expr = build(value);
+        cursorPosition = expr.length;
+        lastFormula = '';
+        resultShown = false;
+        structuredEntry = null;
+        if (shiftActive) setShift(false);
+        updateDisplay();
         return false;
       }
 
       const response = originalClick.call(button, event);
-
-      // SHIFT may be used between the confirmation and an inverse/secondary
-      // unary function. Any other action means the confirmed reuse was abandoned.
-      if (action !== 'shift') reuseConfirmedResult = false;
+      if (action !== 'shift') armedValue = null;
       return response;
     };
   });
