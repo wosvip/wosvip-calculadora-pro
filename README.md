@@ -112,26 +112,229 @@ O resultado aparece enquanto a expressão é digitada. A tecla **=** confirma a 
 
 Exemplo: `32 × 2` mostra `64`; depois de confirmar, é possível continuar com `× 2` para obter `128`.
 
+Depois que um resultado é confirmado, funções unárias podem ser aplicadas diretamente ao valor confirmado. Por exemplo: confirme `6` e pressione `√x` para calcular `√(6)`; confirme `22,5` e pressione `sin` para calcular `sin(22,5)` no modo angular selecionado.
+
 ### Tecla SOBRE
 
 A tecla **SOBRE** abre, dentro da própria calculadora, uma apresentação completa do aplicativo. O card reúne os recursos científicos, o funcionamento da câmera, a instalação, o modo offline, a privacidade, as tecnologias e as observações de precisão sem retirar o usuário do cálculo.
 
-### Resolução matemática passo a passo
+## Resolução matemática passo a passo
 
-A seta **▼** abre uma tela de resolução com fundo escuro, fórmulas em destaque e divisórias discretas. Dependendo do cálculo, o aplicativo apresenta:
+A seta **▼** abre uma tela de resolução com fundo escuro, fórmulas em destaque e divisórias discretas. O objetivo não é apenas mostrar o resultado, mas explicar como ele foi obtido.
+
+Dependendo do cálculo, o aplicativo apresenta:
 
 - ordem das operações;
-- transformação de raízes em potências;
+- transformação e desenvolvimento de potências;
+- raízes e funções aplicadas ao resultado confirmado;
 - simplificação de frações algébricas;
 - fatoração e cancelamento de fatores comuns;
 - restrições da expressão original;
+- somatórios **Σ** e produtórios **Π**, com substituição termo a termo;
 - equações do primeiro grau;
-- fórmula de Bhaskara e equações do segundo grau;
+- equações do segundo grau com coeficientes, discriminante, fórmula de Bhaskara e verificação das raízes;
+- gráfico cartesiano da parábola em equações do segundo grau;
+- porcentagem contextual e porcentagem financeira em duas etapas;
 - raízes reais ou complexas.
 
 <p align="center">
   <img src="docs/images/passo-a-passo-basico.png" width="420" alt="Resolução passo a passo de uma multiplicação">
 </p>
+
+### Exemplos do passo a passo
+
+#### Potência
+
+Para `12²`, a resolução desenvolve a potência em multiplicação repetida:
+
+```text
+12²
+12 × 12
+12 × 12 = 144
+Resultado: 144
+```
+
+Para `5³`:
+
+```text
+5³
+5 × 5 × 5
+5 × 5 = 25
+25 × 5 = 125
+Resultado: 125
+```
+
+#### Raiz e funções sobre resultado confirmado
+
+Exemplo com raiz:
+
+```text
+6 =
+√x
+√(6) = 2,44948974278...
+```
+
+Exemplo trigonométrico em **DEG**:
+
+```text
+180 ÷ 8 = 22,5
+sin
+sin(22,5°) = 0,382683432365...
+```
+
+A mesma expressão pode ser recalculada em **RAD**, respeitando o modo angular selecionado.
+
+#### Somatório Σ
+
+Exemplo:
+
+```text
+Σ X=1…4 (X)
+```
+
+A resolução mostra os limites, substitui cada valor de `X` e soma progressivamente:
+
+```text
+X = 1 → 1
+X = 2 → 2
+X = 3 → 3
+X = 4 → 4
+
+1 + 2 + 3 + 4
+1 + 2 = 3
+3 + 3 = 6
+6 + 4 = 10
+
+Resultado: 10
+```
+
+#### Produtório Π
+
+Exemplo:
+
+```text
+Π X=1…4 (X)
+```
+
+A resolução desenvolve o produto termo a termo:
+
+```text
+1 × 2 × 3 × 4
+1 × 2 = 2
+2 × 3 = 6
+6 × 4 = 24
+
+Resultado: 24
+```
+
+#### Equação do segundo grau
+
+Exemplo:
+
+```text
+X² − 7X + 10 = 0
+```
+
+A resolução identifica:
+
+```text
+a = 1
+b = -7
+c = 10
+```
+
+Depois calcula o discriminante:
+
+```text
+Δ = b² − 4ac
+Δ = (-7)² − 4 × 1 × 10
+Δ = 49 − 40
+Δ = 9
+```
+
+Aplica Bhaskara:
+
+```text
+x = (-b ± √Δ) / 2a
+x = (7 ± 3) / 2
+x₁ = 5
+x₂ = 2
+```
+
+Ao final, o aplicativo verifica as raízes na equação original e apresenta um **gráfico cartesiano da parábola**, incluindo vértice, eixo de simetria, intercepto em `Y`, concavidade e raízes reais quando existirem.
+
+### Funções científicas — exemplos de uso
+
+| Função | Exemplo | Resultado esperado |
+|---|---|---|
+| Seno | `sin(30)` em DEG | `0,5` |
+| Cosseno | `cos(60)` em DEG | `0,5` |
+| Tangente | `tan(45)` em DEG | `1` |
+| Raiz quadrada | `√(81)` | `9` |
+| Raiz cúbica | `∛(27)` | `3` |
+| Quadrado | `12²` | `144` |
+| Cubo | `5³` | `125` |
+| Logaritmo decimal | `log(1000)` | `3` |
+| Logaritmo natural | `ln(e)` | `1` |
+| Exponencial | `e^1` | `e` |
+| Inverso | `1/4` ou `x⁻¹` sobre `4` | `0,25` |
+| Fatorial | `5!` | `120` |
+
+> [!NOTE]
+> Nas funções trigonométricas, confira sempre se o modo **DEG** ou **RAD** corresponde à unidade angular desejada.
+
+## Limites
+
+A calculadora possui cálculo numérico de limites para expressões que utilizam a variável `X`.
+
+### Como usar
+
+1. Digite uma expressão contendo `X`.
+2. Acione a função **lim**.
+3. Informe o valor para o qual `X` deve tender.
+4. A calculadora avalia numericamente a aproximação ao redor do ponto informado.
+
+### Exemplo clássico
+
+Digite:
+
+```text
+sin(X)/X
+```
+
+Acione **lim** e informe:
+
+```text
+0
+```
+
+A calculadora aproxima a expressão pelos dois lados de `0` e retorna valor próximo de:
+
+```text
+lim X→0 sin(X)/X = 1
+```
+
+### Outro exemplo
+
+Digite:
+
+```text
+(X²−1)/(X−1)
+```
+
+Calcule o limite para:
+
+```text
+X → 1
+```
+
+Como a expressão se aproxima de `2` nos pontos vizinhos de `1`, o resultado numérico esperado é:
+
+```text
+lim X→1 (X²−1)/(X−1) = 2
+```
+
+O recurso é numérico e foi projetado para estudar o comportamento da função próximo ao ponto indicado. Em casos de descontinuidade, divergência ou comportamentos diferentes pela esquerda e pela direita, o resultado deve ser interpretado de acordo com a natureza matemática da função.
 
 ## Reconhecimento matemático pela câmera
 
@@ -201,18 +404,49 @@ A tecla **DRG** mantém as configurações de ângulo e formato numérico. Com *
 - O símbolo da moeda aparece antes do valor.
 - Milhares e casas decimais seguem automaticamente o padrão da moeda escolhida.
 - A digitação, a prévia e o resultado permanecem identificados no mesmo padrão.
-- Porcentagem em duas etapas, no estilo financeiro/RPN: `$ 6,550.00 + 30%` mostra primeiro `$ 1,965.00`; depois, pressione `+` para obter `$ 8,515.00` ou `−` para obter `$ 4,585.00`.
+- No modo monetário, a porcentagem pode ser usada em duas etapas, no estilo financeiro/RPN: `R$ 5.000 × 30%` mostra primeiro `R$ 1.500,00` e preserva internamente o valor-base de `R$ 5.000,00`.
+- Depois da prévia percentual, pressione `+` para montar `R$ 5.000 + 1.500` e obter `R$ 6.500,00`, ou pressione `−` para montar `R$ 5.000 − 1.500` e obter `R$ 3.500,00`.
+- A resolução matemática preserva a origem do valor percentual e mostra `5000 × 30 ÷ 100 = 1500` antes de aplicar a soma ou a subtração escolhida.
 - Funções científicas, trigonométricas e de frações desativam automaticamente o modo monetário.
 - A opção **Desativado** retorna ao modo científico, que agrupa milhares com espaços e respeita a vírgula decimal no padrão BR ou o ponto decimal no padrão US.
+
+### Exemplo didático de porcentagem financeira
+
+```text
+Valor-base: R$ 5.000,00
+Percentual: 30%
+
+5000 × 30 ÷ 100
+5000 × 30 = 150000
+150000 ÷ 100 = 1500
+
+30% de 5000 = 1500
+```
+
+Se a operação escolhida for `+`:
+
+```text
+5000 + 1500 = 6500
+Resultado: R$ 6.500,00
+```
+
+Se a operação escolhida for `−`:
+
+```text
+5000 − 1500 = 3500
+Resultado: R$ 3.500,00
+```
 
 ## Outras ferramentas
 
 - Integral definida e derivada numérica
-- Limites, somatórios e produtórios
+- Limites numéricos com variável `X`
+- Somatórios **Σ** e produtórios **Π** com expansão passo a passo
 - Conversor de unidades para engenharia
 - Juros simples e compostos
 - Parcelas de financiamento
 - Gráficos de funções
+- Gráfico cartesiano integrado à resolução de equações do segundo grau
 - Conversões binárias, octais, decimais e hexadecimais
 - Estatística, memória e histórico local
 
@@ -265,6 +499,11 @@ O reconhecimento por câmera necessita de internet na primeira utilização para
 | `advanced-math-engine.js` | Comunicação com o motor simbólico |
 | `advanced-math-worker.js` | Execução isolada do SymPy |
 | `formula-ocr-worker.js` | Reconhecimento matemático em segundo plano |
+| `calculation-steps-product-fix.js` | Resolução detalhada de somatórios e produtórios |
+| `calculation-steps-power-fix.js` | Desenvolvimento passo a passo de potências |
+| `calculation-steps-quadratic-fix.js` | Bhaskara detalhada e gráfico cartesiano da parábola |
+| `percentage-hp-fix.js` | Porcentagem contextual e fluxo financeiro em duas etapas |
+| `confirmed-result-unary-fix.js` | Aplicação de funções unárias sobre resultados confirmados |
 | `manifest.json` | Nome, ícones e configuração do PWA |
 | `sw.js` | Cache, atualização e funcionamento offline |
 
@@ -281,6 +520,8 @@ Outros navegadores modernos podem funcionar, mas a instalação, a câmera e o a
 ## Observações sobre precisão
 
 O reconhecimento por imagem pode interpretar incorretamente caracteres muito pequenos, reflexos, baixa iluminação ou numeração impressa antes do exercício. Por isso, a tela de revisão permite corrigir a expressão antes do cálculo. Para resultados importantes, confira a fórmula reconhecida e as restrições matemáticas apresentadas.
+
+Os recursos de limite, derivada e integral utilizam aproximações numéricas em determinadas operações. Em funções com descontinuidades, singularidades ou forte sensibilidade numérica, interprete o resultado considerando o comportamento matemático da expressão.
 
 ---
 
