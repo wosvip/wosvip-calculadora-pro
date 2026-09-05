@@ -6,8 +6,8 @@
   function prettyExpr(s){return String(s).replace(/\^2/g,"²").replace(/\^3/g,"³").replace(/\*/g,"×");}
   function gcd(a,b){a=Math.abs(a);b=Math.abs(b);while(b){const t=b;b=a%b;a=t;}return a||1;}
   function frac(num,den){if(!Number.isInteger(num)||!Number.isInteger(den)||den===0)return null;const g=gcd(num,den);num/=g;den/=g;if(den<0){num=-num;den=-den;}return den===1?String(num):`${num}/${den}`;}
-  function fracHtml(num,den){return `<span style="display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;line-height:1.05;margin:0 .12em"><span style="padding:0 .18em .08em;border-bottom:1.5px solid currentColor">${num}</span><span style="padding:.08em .18em 0">${den}</span></span>`;}
-  function mathLine(html){return `<div style="font-size:1.35rem;line-height:1.65;margin:.35rem 0;overflow-x:auto;white-space:nowrap">${html}</div>`;}
+  function fracHtml(num,den){return `<span style="display:inline-flex;flex-direction:column;align-items:center;justify-content:center;vertical-align:middle;line-height:1.05;margin:0 .12em;overflow:visible"><span style="display:block;padding:0 .18em .08em;border-bottom:1.5px solid currentColor;overflow:visible">${num}</span><span style="display:block;padding:.08em .18em 0;overflow:visible">${den}</span></span>`;}
+  function mathLine(html){return `<div style="font-size:clamp(1.05rem,4.6vw,1.35rem);line-height:1.7;margin:.42rem 0;max-width:100%;overflow:visible;white-space:normal;word-break:normal">${html}</div>`;}
   function parseIntegral(formula){
     const s=String(formula||"").trim().replace(/²/g,"^2").replace(/³/g,"^3");
     const m=s.match(/^∫\[\s*([^,]+)\s*,\s*([^\]]+)\]\s*(.*?)\s*dX$/i);
@@ -42,13 +42,8 @@
     const substituteLine=exactPrimitive&&exactPrimitive.includes("/")?(()=>{const [n,d]=exactPrimitive.split("/");return mathLine(`(${fracHtml(n,d)} · ${clean(q.upper)}<sup>${nextText}</sup>) − (${fracHtml(n,d)} · ${clean(q.lower)}<sup>${nextText}</sup>)`);})():stepMath(`(${clean(primitiveCoeff)} × ${clean(q.upper)}^${nextText}) − (${clean(primitiveCoeff)} × ${clean(q.lower)}^${nextText})`);
     let termHtml,finalHtml;
     if(exactFu&&exactFl&&exactFinal&&exactFinal.includes("/")){
-      const [fn,fd]=exactFinal.split("/");
-      termHtml=mathLine(`${fracHtml(fn,fd)} − 0 = ${fracHtml(fn,fd)}`);
-      finalHtml=mathLine(`${fracHtml(fn,fd)} = ${clean(final)}`);
-    }else{
-      termHtml=stepMath(`${clean(Fu)} − ${clean(Fl)} = ${clean(final)}`);
-      finalHtml=stepMath(clean(final));
-    }
+      const [fn,fd]=exactFinal.split("/");termHtml=mathLine(`${fracHtml(fn,fd)} − 0 = ${fracHtml(fn,fd)}`);finalHtml=mathLine(`${fracHtml(fn,fd)} = ${clean(final)}`);
+    }else{termHtml=stepMath(`${clean(Fu)} − ${clean(Fl)} = ${clean(final)}`);finalHtml=stepMath(clean(final));}
     return [
       {title:"Integral definida",html:stepMath(`∫[${clean(q.lower)}, ${clean(q.upper)}] ${bodyPretty} dX`)},
       {title:"Identifique os limites e o integrando",html:`<div>Limite inferior: <strong>${clean(q.lower)}</strong><br>Limite superior: <strong>${clean(q.upper)}</strong><br>Função: <strong>${bodyPretty}</strong></div>`},
