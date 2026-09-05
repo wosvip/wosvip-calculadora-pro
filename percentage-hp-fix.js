@@ -3,6 +3,7 @@
   const originalPress=window.press;
   const originalBuild=window.buildCalculationSteps;
   let percentInfo=null;
+  let monetaryPercentPending=null;
 
   function cleanNumber(v){return String(+Number(v).toPrecision(12));}
   function displayNumber(v){
@@ -26,6 +27,11 @@
     else total=p.base/(p.rate/100);
     return {amount,total};
   }
+  function currencyActive(){return typeof currencyMode!=="undefined"&&currencyMode!=="OFF";}
+  function setScreenValue(value){
+    const screen=document.getElementById("screen");
+    if(screen)screen.value=displayNumber(value);
+  }
 
   window.press=function(action){
     if(action==="percent"){
@@ -36,12 +42,43 @@
       if(p){
         const r=calculate(p);
         percentInfo={...p,...r};
-        const screen=document.getElementById("screen");
-        if(screen)screen.value=displayNumber(r.amount);
+        setScreenValue(r.amount);
+        if(currencyActive()&&p.op==="*"){
+          monetaryPercentPending={base:p.base,rate:p.rate,amount:r.amount,source:p.source,selected:null};
+        }else{
+          monetaryPercentPending=null;
+        }
       }
       return;
     }
+
+    if(currencyActive()&&monetaryPercentPending&&(action==="+"||action==="-")){
+      const p=monetaryPercentPending;
+      p.selected=action;
+      expr=`${cleanNumber(p.base)}${action}${cleanNumber(p.amount)}`;
+      cursorPosition=expr.length;
+      resultShown=false;
+      updateDisplay();
+      return;
+    }
+
     if(action==="equal"){
+      if(currencyActive()&&monetaryPercentPending&&monetaryPercentPending.selected){
+        const p=monetaryPercentPending;
+        const total=p.selected==="+"?p.base+p.amount:p.base-p.amount;
+        const semanticFormula=`${cleanNumber(p.base)}${p.selected}${cleanNumber(p.rate)}%`;
+        lastFormula=semanticFormula;
+        lastAnswer=total;
+        localStorage.setItem("wosvipLastAnswer",String(total));
+        addHistory("Cálculo",semanticFormula,cleanNumber(total));
+        expr=cleanNumber(total);
+        cursorPosition=expr.length;
+        resultShown=true;
+        monetaryPercentPending=null;
+        updateDisplay();
+        return;
+      }
+
       const p=parseSimplePercent(expr);
       if(p){
         const r=calculate(p);
@@ -53,9 +90,14 @@
         expr=cleanNumber(r.total);
         cursorPosition=expr.length;
         resultShown=true;
+        monetaryPercentPending=null;
         updateDisplay();
         return;
       }
+    }
+
+    if(monetaryPercentPending&&action!=="cursorLeft"&&action!=="cursorRight"){
+      monetaryPercentPending=null;
     }
     return originalPress(action);
   };
