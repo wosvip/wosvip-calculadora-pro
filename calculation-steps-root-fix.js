@@ -4,7 +4,8 @@
   function num(v){const n=Number(v);return Number.isFinite(n)?String(+n.toPrecision(12)):String(v);}
   function math(s){return `<div style="font-size:clamp(1.08rem,4.2vw,1.4rem);line-height:1.65;margin:.35rem 0;overflow:visible;max-height:none;white-space:normal">${s}</div>`;}
   function frac(a,b){return `<span style="display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;line-height:1.05;overflow:visible;max-height:none"><span style="padding:0 .16em .07em;border-bottom:1.4px solid currentColor">${a}</span><span style="padding:.07em .16em 0">${b}</span></span>`;}
-  function rootSymbol(index,radicand){return index===2?`√${radicand}`:`<span style="display:inline-flex;align-items:flex-start;overflow:visible;max-height:none"><sup style="font-size:.58em;line-height:1;margin-right:-.08em">${index}</sup><span>√${radicand}</span></span>`;}
+  function rootSymbol(index,radicand){return index===2?`√${radicand}`:`<span style="display:inline-flex;align-items:flex-start;overflow:visible;max-height:none;white-space:nowrap"><sup style="font-size:.58em;line-height:1;margin-right:-.08em">${index}</sup><span>√${radicand}</span></span>`;}
+  function inlineToken(html){return `<span style="display:inline-block;white-space:nowrap;vertical-align:baseline">${html}</span>`;}
   function parseRoot(source){
     const s=String(source||"").trim();
     let m=s.match(/^root\(\s*(-?\d+(?:[.,]\d+)?)\s*,\s*(-?\d+(?:[.,]\d+)?)\s*\)$/i);
@@ -25,7 +26,7 @@
       const integerRoot=Math.sqrt(radicand),exact=Number.isInteger(integerRoot);
       if(exact){const k=num(integerRoot);return [
         {title:"Expressão original",html:math(root)},
-        {title:"Interprete a raiz quadrada",html:`<div style="line-height:1.6">A raiz quadrada de <strong>${r}</strong> é o número que, multiplicado por ele mesmo, resulta em <strong>${r}</strong>.</div>${math(`${root} = ?`)}`},
+        {title:"Interprete a raiz quadrada",html:`<div style="line-height:1.6">A raiz quadrada de ${inlineToken(`<strong>${r}</strong>`)} é o número que, multiplicado por ele mesmo, resulta em ${inlineToken(`<strong>${r}</strong>`)}.</div>${math(`${root} = ?`)}`},
         {title:"Encontre o número",html:math(`${k} × ${k} = ${r}`)},
         {title:"Verifique",html:math(`${k}<sup>2</sup> = ${r}`)},
         {title:"Portanto, o resultado é",html:math(`${root} = ${k}`)}
@@ -33,9 +34,9 @@
       const low=Math.floor(integerRoot),high=low+1;
       return [
         {title:"Expressão original",html:math(root)},
-        {title:"Interprete a raiz quadrada",html:`<div style="line-height:1.6">Procuramos um número cujo quadrado seja <strong>${r}</strong>.</div>`},
+        {title:"Interprete a raiz quadrada",html:`<div style="line-height:1.6">Procuramos um número cujo quadrado seja ${inlineToken(`<strong>${r}</strong>`)}.</div>`},
         {title:"Localize a raiz entre dois quadrados",html:math(`${low}<sup>2</sup> = ${low*low} &lt; ${r} &lt; ${high*high} = ${high}<sup>2</sup>`)},
-        {title:"A raiz não é inteira",html:`<div style="line-height:1.6">Como <strong>${r}</strong> não é um quadrado perfeito, mantemos <strong>√${r}</strong> como forma exata e calculamos sua aproximação decimal.</div>`},
+        {title:"A raiz não é inteira",html:`<div style="line-height:1.65">Como ${inlineToken(`<strong>${r}</strong>`)} não é um quadrado perfeito, mantemos ${inlineToken(`<strong>√${r}</strong>`)} como forma exata e calculamos sua aproximação decimal.</div>`},
         {title:"Aproximação decimal",html:math(`${root} ≈ ${v}`)},
         {title:"Portanto, o resultado é",html:math(v)}
       ];
@@ -58,7 +59,7 @@
     }
     steps.push({title:`Compare com potências de ordem ${index}`,html:math(`${low}<sup>${index}</sup> = ${num(Math.pow(low,index))} &lt; ${r} &lt; ${num(Math.pow(high,index))} = ${high}<sup>${index}</sup>`)});
     steps.push({title:"Localize o resultado",html:math(`${low} &lt; ${root} &lt; ${high}`)});
-    steps.push({title:"A raiz não é exata",html:`<div style="line-height:1.6">Como <strong>${r}</strong> não é uma potência ${index}-ésima perfeita, mantemos ${root} como forma exata e calculamos sua aproximação decimal.</div>`});
+    steps.push({title:"A raiz não é exata",html:`<div style="line-height:1.65">Como ${inlineToken(`<strong>${r}</strong>`)} não é uma potência ${inlineToken(`<strong>${index}-ésima</strong>`)} perfeita, mantemos ${inlineToken(root)} como forma exata e calculamos sua aproximação decimal.</div>`});
     steps.push({title:"Aproximação decimal",html:math(`${root} ≈ ${v}`)});
     steps.push({title:"Portanto, o resultado é",html:math(v)});
     return steps;
