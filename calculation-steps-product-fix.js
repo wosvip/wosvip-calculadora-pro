@@ -9,7 +9,7 @@
 
   function seriesMatch(source, symbol){
     const escaped = symbol === "Σ" ? "Σ" : "Π";
-    return source.match(new RegExp("^"+escaped+"\\s*X\\s*=\\s*(-?\\d+)\\s*\\.\\.\\.\\s*(-?\\d+)\\s*\\((.*)\\)$","i"));
+    return source.match(new RegExp("^"+escaped+"\\s*X\\s*=\\s*(-?\\d+)\\s*(?:\\.\\.\\.|…)\\s*(-?\\d+)\\s*\\((.*)\\)$","i"));
   }
 
   function evaluateTerms(lower, upper, body){
