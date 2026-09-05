@@ -7,7 +7,9 @@
   function rootSymbol(index,radicand){return index===2?`√${radicand}`:`<span style="display:inline-flex;align-items:flex-start;overflow:visible;max-height:none"><sup style="font-size:.58em;line-height:1;margin-right:-.08em">${index}</sup><span>√${radicand}</span></span>`;}
   function parseRoot(source){
     const s=String(source||"").trim();
-    let m=s.match(/^√\s*\(\s*(-?\d+(?:[.,]\d+)?)\s*\)$/)||s.match(/^√\s*(-?\d+(?:[.,]\d+)?)$/);
+    let m=s.match(/^root\(\s*(-?\d+(?:[.,]\d+)?)\s*,\s*(-?\d+(?:[.,]\d+)?)\s*\)$/i);
+    if(m)return {index:Number(m[1].replace(",",".")),radicand:Number(m[2].replace(",","."))};
+    m=s.match(/^√\s*\(\s*(-?\d+(?:[.,]\d+)?)\s*\)$/)||s.match(/^√\s*(-?\d+(?:[.,]\d+)?)$/);
     if(m)return {index:2,radicand:Number(m[1].replace(",","."))};
     m=s.match(/^(\d+)\s*√\s*\(\s*(-?\d+(?:[.,]\d+)?)\s*\)$/)||s.match(/^(\d+)\s*√\s*(-?\d+(?:[.,]\d+)?)$/);
     if(m)return {index:Number(m[1]),radicand:Number(m[2].replace(",","."))};
