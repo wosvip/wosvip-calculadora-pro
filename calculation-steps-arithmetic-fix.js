@@ -6,6 +6,15 @@
     return String(+Number(value).toPrecision(12));
   }
 
+  function decimalSeparator(){
+    if(typeof currencyMode!=="undefined"&&currencyMode!=="OFF"&&typeof activeCurrency==="function")return activeCurrency().decimal;
+    return typeof numberFormat!=="undefined"&&numberFormat==="BR"?",":".";
+  }
+
+  function localizedNumberText(value){
+    return numberText(value).replace(".",decimalSeparator());
+  }
+
   function parseIntegerMultiplication(formula,result){
     const source=String(formula||"").trim().replace(/−/g,"-");
     const match=source.match(/^([+-]?\d+)\s*[×*]\s*([+-]?\d+)$/);
@@ -49,7 +58,7 @@
     const simplifiedNumerator=initialRemainder/gcd,simplifiedDenominator=absDivisor/gcd;
     const decimal=decimalDivision(initialRemainder,absDivisor);
     const digits=decimal.rows.map(row=>row.digit).join("");
-    const decimalPreview=digits?`${integerPart},${digits}${decimal.finished?"":"…"}`:String(integerPart);
+    const decimalPreview=digits?`${integerPart}${decimalSeparator()}${digits}${decimal.finished?"":"…"}`:String(integerPart);
     const rowsHtml=decimal.rows.length?decimal.rows.map((row,index)=>`<tr><td>${index+1}ª</td><td>${row.broughtDown}</td><td>${row.digit}</td><td>${row.digit} × ${absDivisor} = ${row.product}</td><td>${row.remainder}</td></tr>`).join(""):"";
     const signNegative=(dividend<0)!==(divisor<0);
     const steps=[
@@ -62,7 +71,7 @@
       steps.push({title:"Continue a divisão nas casas decimais",html:`<p>Acrescente um zero ao resto, divida novamente e repita o processo. Cada resultado forma uma nova casa decimal.</p><div style="max-width:100%;overflow:auto"><table style="border-collapse:collapse;min-width:480px"><thead><tr><th style="padding:6px;border-bottom:1px solid #555">Casa</th><th style="padding:6px;border-bottom:1px solid #555">Número</th><th style="padding:6px;border-bottom:1px solid #555">Algarismo</th><th style="padding:6px;border-bottom:1px solid #555">Produto</th><th style="padding:6px;border-bottom:1px solid #555">Novo resto</th></tr></thead><tbody>${rowsHtml}</tbody></table></div><p>As casas obtidas formam <strong>${decimalPreview}</strong>.</p>`});
       if(decimal.repeatStart>=0){
         const repeating=digits.slice(decimal.repeatStart);
-        steps.push({title:"Identifique o período decimal",html:`<p>O resto voltou a um valor já encontrado. Portanto, os algarismos <strong>${repeating}</strong> passam a se repetir.</p><p>${integerPart},<span style="text-decoration:overline">${repeating}</span></p>`});
+        steps.push({title:"Identifique o período decimal",html:`<p>O resto voltou a um valor já encontrado. Portanto, os algarismos <strong>${repeating}</strong> passam a se repetir.</p><p>${integerPart}${decimalSeparator()}<span style="text-decoration:overline">${repeating}</span></p>`});
       }else if(!decimal.finished){
         steps.push({title:"Continue se precisar de mais casas",html:"<p>O resto ainda não chegou a zero. O mesmo procedimento pode continuar para obter outras casas decimais; a calculadora arredonda o resultado no limite do visor.</p>"});
       }
@@ -70,8 +79,8 @@
       steps.push({title:"Observe que a divisão é exata",html:"<p>O resto é zero, portanto não é necessário continuar nas casas decimais.</p>"});
     }
     if(dividend<0||divisor<0)steps.push({title:"Aplique a regra de sinais",html:`<p>Dividendo e divisor têm sinais ${signNegative?"diferentes":"iguais"}; logo, o quociente é <strong>${signNegative?"negativo":"positivo"}</strong>.</p>`});
-    steps.push({title:"Confira o resultado",html:`<p>${numberText(answer)} × (${divisor}) ≈ <strong>${numberText(answer*divisor)}</strong></p><p>O símbolo ≈ indica que o decimal mostrado pode estar arredondado.</p>`});
-    steps.push({title:"Portanto, o resultado é",html:stepMath(`${source} = ${numberText(answer)}`)});
+    steps.push({title:"Confira o resultado",html:`<p>${localizedNumberText(answer)} × (${divisor}) ≈ <strong>${localizedNumberText(answer*divisor)}</strong></p><p>O símbolo ≈ indica que o decimal mostrado pode estar arredondado.</p>`});
+    steps.push({title:"Portanto, o resultado é",html:stepMath(`${source} = ${localizedNumberText(answer)}`)});
     return steps;
   }
 
