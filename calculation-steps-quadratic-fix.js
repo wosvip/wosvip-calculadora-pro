@@ -1,7 +1,86 @@
 "use strict";
 (function(){
   const previousBuild=window.buildCalculationSteps;
+  const previousSolve=window.solveEquation;
   function n(v){return String(+Number(v).toPrecision(12));}
+  function cleanZero(v){return Math.abs(v)<1e-10?0:v;}
+  function complexText(real,imag){
+    real=cleanZero(real);imag=cleanZero(imag);
+    return `${n(real)} ${imag<0?"−":"+"} ${n(Math.abs(imag))}i`;
+  }
+  function parseCubic(formula){
+    let s=String(formula||"").replace(/\s+/g,"").replace(/³/g,"^3").replace(/²/g,"^2").replace(/−/g,"-").toUpperCase();
+    if(!s.includes("="))return null;
+    const parts=s.split("=");if(parts.length!==2)return null;
+    function terms(side,multiplier){
+      let normalized=side.replace(/-/g,"+-");if(normalized.startsWith("+"))normalized=normalized.slice(1);
+      const out=[0,0,0,0];
+      for(const term of normalized.split("+").filter(Boolean)){
+        let degree=0,coefficient=term;
+        if(/X\^3$/.test(term)){degree=3;coefficient=term.replace(/X\^3$/,"");}
+        else if(/X\^2$/.test(term)){degree=2;coefficient=term.replace(/X\^2$/,"");}
+        else if(/X$/.test(term)){degree=1;coefficient=term.replace(/X$/,"");}
+        else if(/X/.test(term))return null;
+        const value=coefficient===""?1:coefficient==="-"?-1:Number(coefficient);
+        if(!Number.isFinite(value))return null;
+        out[degree]+=multiplier*value;
+      }
+      return out;
+    }
+    const left=terms(parts[0],1),right=terms(parts[1],-1);if(!left||!right)return null;
+    const coefficients=left.map((value,index)=>value+right[index]);
+    if(!coefficients.every(Number.isFinite)||Math.abs(coefficients[3])<1e-12)return null;
+    const [d,c,b,a]=coefficients;
+    return {a,b,c,d};
+  }
+  function cubicData(formula){
+    const coefficients=parseCubic(formula);if(!coefficients)return null;
+    const {a,b,c,d}=coefficients,offset=b/(3*a);
+    const p=(3*a*c-b*b)/(3*a*a);
+    const q=(2*b*b*b-9*a*b*c+27*a*a*d)/(27*a*a*a);
+    const discriminant=(q*q)/4+(p*p*p)/27;
+    const tolerance=1e-12*Math.max(1,Math.abs(q*q/4),Math.abs(p*p*p/27));
+    let roots,kind;
+    if(discriminant>tolerance){
+      const sqrt=Math.sqrt(discriminant),u=Math.cbrt(-q/2+sqrt),v=Math.cbrt(-q/2-sqrt);
+      roots=[{re:u+v-offset,im:0},{re:-(u+v)/2-offset,im:(Math.sqrt(3)/2)*(u-v)},{re:-(u+v)/2-offset,im:-(Math.sqrt(3)/2)*(u-v)}];
+      kind="one-real";
+    }else if(discriminant<-tolerance){
+      const radius=2*Math.sqrt(-p/3),theta=Math.acos((3*q/(2*p))*Math.sqrt(-3/p));
+      roots=[0,1,2].map(k=>({re:radius*Math.cos((theta+2*Math.PI*k)/3)-offset,im:0})).sort((x,y)=>y.re-x.re);
+      kind="three-real";
+    }else{
+      const u=Math.cbrt(-q/2);
+      roots=[{re:2*u-offset,im:0},{re:-u-offset,im:0},{re:-u-offset,im:0}];
+      kind="multiple";
+    }
+    roots.forEach(root=>{root.re=cleanZero(root.re);root.im=cleanZero(root.im);});
+    return {...coefficients,p,q,discriminant:cleanZero(discriminant),roots,kind};
+  }
+  function rootLabel(root){return root.im?complexText(root.re,root.im):n(root.re);}
+  function cubicResult(data){return data.roots.map((root,index)=>`x${index+1} = ${rootLabel(root)}`).join("; ");}
+  function cubicValue(data,root){
+    if(root.im)return null;
+    const x=root.re;return cleanZero(data.a*x*x*x+data.b*x*x+data.c*x+data.d);
+  }
+  function cubicSteps(formula){
+    const data=cubicData(formula);if(!data)return null;
+    const {a,b,c,d,p,q,discriminant,roots,kind}=data;
+    const steps=[
+      {title:"Expressão original",html:stepMath(String(formula).trim())},
+      {title:"Identifique os coeficientes",html:`<p>Compare com a forma geral <strong>ax³ + bx² + cx + d = 0</strong>.</p><p>a = <strong>${n(a)}</strong><br>b = <strong>${n(b)}</strong><br>c = <strong>${n(c)}</strong><br>d = <strong>${n(d)}</strong></p>`},
+      {title:"Reduza à forma cúbica de Cardano",html:`<p>Use x = t − b/(3a), obtendo <strong>t³ + pt + q = 0</strong>.</p><p>p = (3ac − b²)/(3a²) = <strong>${n(p)}</strong></p><p>q = (2b³ − 9abc + 27a²d)/(27a³) = <strong>${n(q)}</strong></p>`},
+      {title:"Calcule o discriminante da cúbica",html:`<p>Δ = (q/2)² + (p/3)³</p><p>Δ = <strong>${n(discriminant)}</strong></p>`}
+    ];
+    if(kind==="one-real")steps.push({title:"Interprete o discriminante",html:"<p>Como Δ &gt; 0, existe <strong>uma raiz real</strong> e um par de raízes complexas conjugadas.</p>"});
+    else if(kind==="three-real")steps.push({title:"Interprete o discriminante",html:"<p>Como Δ &lt; 0, existem <strong>três raízes reais e distintas</strong>.</p>"});
+    else steps.push({title:"Interprete o discriminante",html:"<p>Como Δ = 0, a equação possui <strong>raízes reais repetidas</strong>.</p>"});
+    steps.push({title:"Calcule as raízes",html:roots.map((root,index)=>`<p><strong>x${index+1} = ${rootLabel(root)}</strong></p>`).join("")});
+    const realRoots=roots.filter(root=>!root.im);
+    steps.push({title:"Verifique as raízes reais",html:realRoots.map((root,index)=>`<p>Para x = ${n(root.re)}:</p><p>${n(a)}×(${n(root.re)})³ + (${n(b)})×(${n(root.re)})² + (${n(c)})×(${n(root.re)}) + (${n(d)}) = <strong>${n(cubicValue(data,root))}</strong></p>`).join("")});
+    steps.push({title:"Portanto, o resultado é",html:stepMath(cubicResult(data))});
+    return steps;
+  }
   function parseQuadratic(formula){
     let s=String(formula||"").replace(/\s+/g,"").replace(/²/g,"^2").replace(/−/g,"-").toUpperCase();
     if(!s.includes("="))return null;
@@ -82,5 +161,19 @@
     point(xv,yv,`V(${n(xv)}, ${n(yv)})`,"#ffc857");point(0,c,`(0, ${n(c)})`,"#ff8a65");
   }
   const observer=new MutationObserver(()=>document.querySelectorAll("canvas.quadratic-step-graph").forEach(drawGraph));observer.observe(document.documentElement,{childList:true,subtree:true});
-  window.buildCalculationSteps=function(formula,result,symbolic){const q=quadraticSteps(formula,result);if(q)return q;return previousBuild(formula,result,symbolic);};
+  window.solveEquation=function(formula){
+    const cubic=cubicData(formula);
+    if(!cubic)return previousSolve(formula);
+    lastFormula=formula;
+    expr=cubicResult(cubic);
+    cursorPosition=expr.length;
+    resultShown=true;
+    const realRoots=cubic.roots.filter(root=>!root.im).length;
+    lastAnswer=realRoots?cubic.roots.find(root=>!root.im).re:lastAnswer;
+    localStorage.setItem("wosvipLastAnswer",String(lastAnswer));
+    addHistory("Equação do 3º grau",lastFormula,expr);
+    updateDisplay();
+    return true;
+  };
+  window.buildCalculationSteps=function(formula,result,symbolic){const c=cubicSteps(formula);if(c)return c;const q=quadraticSteps(formula,result);if(q)return q;return previousBuild(formula,result,symbolic);};
 })();
